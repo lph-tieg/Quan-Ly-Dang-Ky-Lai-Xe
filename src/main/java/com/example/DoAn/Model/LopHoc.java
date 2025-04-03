@@ -1,5 +1,6 @@
 package com.example.DoAn.Model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import jakarta.persistence.Column;
@@ -11,7 +12,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -40,8 +40,8 @@ public class LopHoc {
 	@Column(name = "soLuong")
 	private Long soLuong = 0L;
 
-	@OneToMany(mappedBy = "lopHoc")
-	private List<HocVien> hocViens;
+	@ManyToMany(mappedBy = "lopHocs")
+	private List<HocVien> hocViens = new ArrayList<>();
 
 	@ManyToMany
 	@JoinTable(name = "lopHoc_giangVien", joinColumns = @JoinColumn(name = "lopHoc_id"), inverseJoinColumns = @JoinColumn(name = "giangVien_id"))
@@ -138,6 +138,10 @@ public class LopHoc {
 		if (this.soLuong != null && this.soLuong > 0) {
 			this.soLuong--;
 		}
+	}
+
+	public void capNhatSoLuong() {
+		this.soLuong = (long) this.hocViens.size();
 	}
 
 	@Override

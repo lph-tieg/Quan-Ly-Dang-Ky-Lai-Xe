@@ -328,7 +328,7 @@ public class DanhSachDKController {
 			}
 
 			// 7. Gán lớp học cho học viên và lưu học viên
-			hocVien.setLopHoc(lopHoc);
+			hocVien.addLopHoc(lopHoc);
 			HocVien savedHocVien = hocVienService.createHocVien(hocVien, nguoiThucHien);
 			if (savedHocVien == null || savedHocVien.getHocVienID() == null) {
 				throw new RuntimeException("Không thể lưu thông tin học viên mới");

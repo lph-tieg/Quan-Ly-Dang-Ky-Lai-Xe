@@ -108,7 +108,7 @@ public class LopHocServiceImpl implements LopHocService {
 			// 3. Cập nhật trạng thái cho học viên trong lớp
 			List<HocVien> hocViens = hocVienService.findByLopHoc(lopHoc);
 			for (HocVien hocVien : hocViens) {
-				hocVien.setLopHoc(null);
+				hocVien.removeLopHoc(lopHoc);
 				hocVienService.updateHocVien(hocVien, nguoiThucHien);
 			}
 

@@ -1,6 +1,9 @@
 package com.example.DoAn.Model;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.Objects;
 
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -10,6 +13,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -54,9 +59,9 @@ public class HocVien {
 	@Column(name = "lichHoc")
 	private String lichHoc;
 
-	@ManyToOne
-	@JoinColumn(name = "lopHocID")
-	private LopHoc lopHoc;
+	@ManyToMany
+	@JoinTable(name = "hocvien_lophoc", joinColumns = @JoinColumn(name = "hocvien_id"), inverseJoinColumns = @JoinColumn(name = "lophoc_id"))
+	private List<LopHoc> lopHocs = new ArrayList<>();
 
 	@Column(name = "loaiThucHanh")
 	private String loaiThucHanh;
@@ -106,8 +111,22 @@ public class HocVien {
 		this.hang = hang;
 	}
 
-	public void setLopHoc(LopHoc lopHoc) {
-		this.lopHoc = lopHoc;
+	public void setLopHocs(List<LopHoc> lopHocs) {
+		this.lopHocs = lopHocs;
+	}
+
+	public void addLopHoc(LopHoc lopHoc) {
+		if (!this.lopHocs.contains(lopHoc)) {
+			this.lopHocs.add(lopHoc);
+			if (!lopHoc.getHocViens().contains(this)) {
+				lopHoc.getHocViens().add(this);
+			}
+		}
+	}
+
+	public void removeLopHoc(LopHoc lopHoc) {
+		this.lopHocs.remove(lopHoc);
+		lopHoc.getHocViens().remove(this);
 	}
 
 	public String getLoaiThucHanh() {
@@ -174,8 +193,8 @@ public class HocVien {
 		this.lichHoc = lichHoc;
 	}
 
-	public LopHoc getLopHoc() {
-		return lopHoc;
+	public List<LopHoc> getLopHocs() {
+		return lopHocs;
 	}
 
 	public KhoaHoc getKhoaHoc() {
@@ -193,8 +212,6 @@ public class HocVien {
 	public void setXeTapLai(XeTapLai xeTapLai) {
 		this.xeTapLai = xeTapLai;
 	}
-
-//	
 
 	public String getRole() {
 		return role;
@@ -274,6 +291,21 @@ public class HocVien {
 
 	public void setBuoiHoc(String buoiHoc) {
 		this.buoiHoc = buoiHoc;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null || getClass() != obj.getClass())
+			return false;
+		HocVien other = (HocVien) obj;
+		return Objects.equals(hocVienID, other.hocVienID);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(hocVienID);
 	}
 
 }

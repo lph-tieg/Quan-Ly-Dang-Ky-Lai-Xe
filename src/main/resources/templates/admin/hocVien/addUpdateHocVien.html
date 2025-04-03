@@ -1,0 +1,23 @@
+                                <div class="form-group">
+                                    <label for="lopHoc">Lớp học</label>
+                                    <select class="form-select" id="lopHoc" name="lopHocID" required>
+                                        <option value="">Chọn lớp học</option>
+                                        <option th:each="lopHoc : ${listLopHoc}"
+                                                th:value="${lopHoc.lopHocID}"
+                                                th:text="${lopHoc.tenLop}"
+                                                th:selected="${hocVien != null and hocVien.lopHocs != null and hocVien.lopHocs.contains(lopHoc)}">
+                                        </option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="giangVienChinh">Giảng viên chính</label>
+                                    <select class="form-select" id="giangVienChinh" name="giangVienChinh" required>
+                                        <option value="">Chọn giảng viên</option>
+                                        <option th:each="giangVien : ${listGiangVien}"
+                                                th:value="${giangVien.hoTenGV}"
+                                                th:text="${giangVien.hoTenGV}"
+                                                th:selected="${hocVien != null and hocVien.giangVienChinh != null and hocVien.giangVienChinh == giangVien.hoTenGV}">
+                                        </option>
+                                    </select>
+                                </div> 

@@ -45,12 +45,19 @@
                 <p><strong>Loại xe đăng ký:</strong> <span th:text="${hocVien.loaiXeDK}"></span></p>
                 <p><strong>Buổi học:</strong> <span th:text="${hocVien.buoiHoc}"></span></p>
                 <p><strong>Thực hành:</strong> <span th:text="${hocVien.lichHoc}"></span></p>
-                <p><strong>Lớp học:</strong> <span th:text="${hocVien.lopHoc}"></span></p>
-                <p><strong>Giảng viên phụ trách:</strong> <span th:if="${hocVien.lopHoc != null}">
-		            <span th:each="gv, iterStat : ${hocVien.lopHoc.listGiangVien}" th:if="${gv.giangVienID != hocVien.GVChinh?.giangVienID}">
-		                <span th:text="${gv.hoTenGV + (iterStat.last ? '' : ', ')}"></span>
-		            </span>
-		        </span></p>
+                <p><strong>Lớp học:</strong> 
+                    <span th:each="lopHoc, iterStat : ${hocVien.lopHocs}">
+                        <span th:text="${lopHoc.tenLop + (iterStat.last ? '' : ', ')}"></span>
+                    </span>
+                </p>
+                <p><strong>Giảng viên phụ trách:</strong> 
+                    <span th:each="lopHoc : ${hocVien.lopHocs}">
+                        <span th:each="gv, iterStat : ${lopHoc.listGiangVien}" 
+                              th:if="${gv.giangVienID != hocVien.giangVienChinh?.giangVienID}">
+                            <span th:text="${gv.hoTenGV + (iterStat.last ? '' : ', ')}"></span>
+                        </span>
+                    </span>
+                </p>
             </div>
         </div>
 

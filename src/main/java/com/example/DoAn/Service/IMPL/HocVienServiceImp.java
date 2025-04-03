@@ -2,7 +2,6 @@ package com.example.DoAn.Service.IMPL;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -57,12 +56,21 @@ public class HocVienServiceImp implements HocVienService {
 					.orElseThrow(() -> new RuntimeException("Không tìm thấy học viên với ID: " + hocVienID));
 
 			// Lưu thông tin học viên trước khi xóa để ghi log
-			String noiDung = String.format("Xóa học viên: %s - Email: %s", hocVien.getHoTen(), hocVien.getEmail());
+			StringBuilder noiDung = new StringBuilder();
+			noiDung.append(String.format("Xóa học viên: %s - Email: %s", hocVien.getHoTen(), hocVien.getEmail()));
 
+			// Xóa học viên khỏi tất cả các lớp và cập nhật số lượng
+			List<LopHoc> lopHocs = new ArrayList<>(hocVien.getLopHocs());
+			for (LopHoc lopHoc : lopHocs) {
+				hocVien.removeLopHoc(lopHoc);
+				noiDung.append("\nXóa khỏi lớp: ").append(lopHoc.getTenLop());
+			}
+
+			// Xóa học viên
 			hocVienRepo.deleteById(hocVienID);
 
 			// Ghi log sau khi xóa thành công
-			lichSuService.themLichSu(nguoiThucHien, "Xoá", "Học Viên", noiDung);
+			lichSuService.themLichSu(nguoiThucHien, "Xoá", "Học Viên", noiDung.toString());
 
 		} catch (Exception e) {
 			throw new RuntimeException("Lỗi khi xóa học viên: " + e.getMessage());
@@ -75,101 +83,25 @@ public class HocVienServiceImp implements HocVienService {
 	@Override
 	public HocVien updateHocVien(HocVien hocVien, String nguoiThucHien) {
 		try {
-			if (hocVien.getHocVienID() == null) {
-				throw new RuntimeException("ID học viên không được để trống");
-			}
+			// Kiểm tra học viên tồn tại
+			HocVien existingHocVien = hocVienRepo.findById(hocVien.getHocVienID())
+					.orElseThrow(() -> new RuntimeException("Không tìm thấy học viên"));
 
-			// Lấy thông tin học viên cũ để so sánh
-			HocVien oldHocVien = hocVienRepo.findById(hocVien.getHocVienID()).orElseThrow(
-					() -> new RuntimeException("Không tìm thấy học viên với ID: " + hocVien.getHocVienID()));
+			// Cập nhật thông tin cơ bản
+			existingHocVien.setHoTen(hocVien.getHoTen());
+			existingHocVien.setEmail(hocVien.getEmail());
+			existingHocVien.setSdt(hocVien.getSdt());
+			existingHocVien.setDiaChi(hocVien.getDiaChi());
+			existingHocVien.setHangDK(hocVien.getHangDK());
+			existingHocVien.setBuoiHoc(hocVien.getBuoiHoc());
+			existingHocVien.setLichHoc(hocVien.getLichHoc());
+			existingHocVien.setLoaiXeDK(hocVien.getLoaiXeDK());
+			existingHocVien.setLoaiThucHanh(hocVien.getLoaiThucHanh());
+			existingHocVien.setGiangVienChinh(hocVien.getGiangVienChinh());
+			existingHocVien.setGhiChu(hocVien.getGhiChu());
 
-			// Kiểm tra email trùng lặp
-			if (!oldHocVien.getEmail().equals(hocVien.getEmail())
-					&& hocVienRepo.existsByEmailAndHocVienIDNot(hocVien.getEmail(), hocVien.getHocVienID())) {
-				throw new RuntimeException("Email này đã được sử dụng bởi học viên khác");
-			}
-
-			// Kiểm tra số điện thoại trùng lặp
-			if (!oldHocVien.getSdt().equals(hocVien.getSdt())
-					&& hocVienRepo.existsBySdtAndHocVienIDNot(hocVien.getSdt(), hocVien.getHocVienID())) {
-				throw new RuntimeException("Số điện thoại này đã được sử dụng bởi học viên khác");
-			}
-
-			// Lưu học viên mới
-			HocVien updatedHocVien = hocVienRepo.save(hocVien);
-
-			// Tạo nội dung log với các thay đổi
-			StringBuilder changes = new StringBuilder();
-
-			// So sánh và ghi nhận tất cả các thay đổi
-			if (!oldHocVien.getHoTen().equals(hocVien.getHoTen())) {
-				changes.append("Họ tên: ").append(oldHocVien.getHoTen()).append(" → ").append(hocVien.getHoTen())
-						.append("\n");
-			}
-			if (!oldHocVien.getEmail().equals(hocVien.getEmail())) {
-				changes.append("Email: ").append(oldHocVien.getEmail()).append(" → ").append(hocVien.getEmail())
-						.append("\n");
-			}
-			if (!oldHocVien.getSdt().equals(hocVien.getSdt())) {
-				changes.append("SĐT: ").append(oldHocVien.getSdt()).append(" → ").append(hocVien.getSdt()).append("\n");
-			}
-			if (!oldHocVien.getDiaChi().equals(hocVien.getDiaChi())) {
-				changes.append("Địa chỉ: ").append(oldHocVien.getDiaChi()).append(" → ").append(hocVien.getDiaChi())
-						.append("\n");
-			}
-			if (!oldHocVien.getHangDK().equals(hocVien.getHangDK())) {
-				changes.append("Hạng đăng ký: ").append(oldHocVien.getHangDK()).append(" → ")
-						.append(hocVien.getHangDK()).append("\n");
-			}
-			if (!Objects.equals(oldHocVien.getLoaiThucHanh(), hocVien.getLoaiThucHanh())) {
-				String oldLoaiTH = oldHocVien.getLoaiThucHanh() != null ? oldHocVien.getLoaiThucHanh() : "Chưa có";
-				String newLoaiTH = hocVien.getLoaiThucHanh() != null ? hocVien.getLoaiThucHanh() : "Chưa có";
-				changes.append("Loại thực hành: ").append(oldLoaiTH).append(" → ").append(newLoaiTH).append("\n");
-			}
-			if (!Objects.equals(oldHocVien.getNgayDKKH(), hocVien.getNgayDKKH())) {
-				changes.append("Ngày đăng ký: ").append(oldHocVien.getNgayDKKH()).append(" → ")
-						.append(hocVien.getNgayDKKH()).append("\n");
-			}
-			if (!Objects.equals(oldHocVien.getGhiChu(), hocVien.getGhiChu())) {
-				String oldGhiChu = oldHocVien.getGhiChu() != null ? oldHocVien.getGhiChu() : "Không có";
-				String newGhiChu = hocVien.getGhiChu() != null ? hocVien.getGhiChu() : "Không có";
-				changes.append("Ghi chú: ").append(oldGhiChu).append(" → ").append(newGhiChu).append("\n");
-			}
-
-			// So sánh xe tập lái
-			String oldXe = oldHocVien.getXeTapLai() != null ? oldHocVien.getXeTapLai().getTenXe() : "Chưa có";
-			String newXe = hocVien.getXeTapLai() != null ? hocVien.getXeTapLai().getTenXe() : "Chưa có";
-			if (!oldXe.equals(newXe)) {
-				changes.append("Xe tập lái: ").append(oldXe).append(" → ").append(newXe).append("\n");
-			}
-
-			// So sánh buổi học
-			if (!Objects.equals(oldHocVien.getBuoiHoc(), hocVien.getBuoiHoc())) {
-				changes.append("Buổi thực hành: ").append(oldHocVien.getBuoiHoc()).append(" → ")
-						.append(hocVien.getBuoiHoc()).append("\n");
-			}
-
-			// So sánh lịch học
-			if (!Objects.equals(oldHocVien.getLichHoc(), hocVien.getLichHoc())) {
-				changes.append("Lịch học: ").append(oldHocVien.getLichHoc()).append(" → ").append(hocVien.getLichHoc())
-						.append("\n");
-			}
-
-			// So sánh lớp học
-			String oldLop = oldHocVien.getLopHoc() != null ? oldHocVien.getLopHoc().getTenLop() : "Chưa có lớp";
-			String newLop = hocVien.getLopHoc() != null ? hocVien.getLopHoc().getTenLop() : "Chưa có lớp";
-			if (!oldLop.equals(newLop)) {
-				changes.append("Lớp học: ").append(oldLop).append(" → ").append(newLop).append("\n");
-			}
-
-			// Ghi log nếu có thay đổi
-			if (changes.length() > 0) {
-				String noiDung = String.format("Cập nhật thông tin học viên %s:\n%s", hocVien.getHoTen(),
-						changes.toString().trim());
-				lichSuService.themLichSu(nguoiThucHien, "Cập Nhật", "Học Viên", noiDung);
-			}
-
-			return updatedHocVien;
+			// Lưu thay đổi
+			return hocVienRepo.save(existingHocVien);
 		} catch (Exception e) {
 			throw new RuntimeException("Lỗi khi cập nhật học viên: " + e.getMessage());
 		}
@@ -196,7 +128,7 @@ public class HocVienServiceImp implements HocVienService {
 			if (hocVien.getEmail() == null || hocVien.getEmail().trim().isEmpty()) {
 				throw new RuntimeException("Email không được để trống");
 			}
-			if (hocVien.getLopHoc() == null) {
+			if (hocVien.getLopHocs() == null || hocVien.getLopHocs().isEmpty()) {
 				throw new RuntimeException("Lớp học không được để trống");
 			}
 			if (hocVien.getGiangVienChinh() == null) {
@@ -210,9 +142,17 @@ public class HocVienServiceImp implements HocVienService {
 			}
 
 			// Ghi log sau khi tạo thành công
+			StringBuilder lopHocInfo = new StringBuilder();
+			for (LopHoc lopHoc : savedHocVien.getLopHocs()) {
+				if (lopHocInfo.length() > 0) {
+					lopHocInfo.append(", ");
+				}
+				lopHocInfo.append(lopHoc.getTenLop());
+			}
+
 			String noiDung = String.format("Thêm học viên mới: %s - Email: %s - SĐT: %s - Hạng: %s - Lớp: %s",
 					savedHocVien.getHoTen(), savedHocVien.getEmail(), savedHocVien.getSdt(), savedHocVien.getHangDK(),
-					savedHocVien.getLopHoc().getTenLop());
+					lopHocInfo.toString());
 
 			lichSuService.themLichSu(nguoiThucHien, "Thêm Mới", "Học Viên", noiDung);
 
@@ -365,6 +305,38 @@ public class HocVienServiceImp implements HocVienService {
 			return listHocVien;
 		} catch (Exception e) {
 			throw new RuntimeException("Lỗi khi lấy danh sách học viên theo lớp học: " + e.getMessage());
+		}
+	}
+
+	@Override
+	public List<HocVien> findByHoTenContainingIgnoreCase(String keyword) {
+		// TODO Auto-generated method stub
+		return hocVienRepo.findByHoTenContainingIgnoreCase(keyword);
+	}
+
+	@Override
+	public List<HocVien> findAllHocVien() {
+		try {
+			List<HocVien> listHocVien = hocVienRepo.findAll();
+			if (listHocVien == null) {
+				return new ArrayList<>();
+			}
+			return listHocVien;
+		} catch (Exception e) {
+			throw new RuntimeException("Lỗi khi lấy danh sách học viên: " + e.getMessage());
+		}
+	}
+
+	@Override
+	public List<HocVien> findHocVienNotInLopHoc(Integer lopHocID) {
+		try {
+			List<HocVien> listHocVien = hocVienRepo.findHocVienNotInLopHoc(lopHocID);
+			if (listHocVien == null) {
+				return new ArrayList<>();
+			}
+			return listHocVien;
+		} catch (Exception e) {
+			throw new RuntimeException("Lỗi khi lấy danh sách học viên chưa có trong lớp: " + e.getMessage());
 		}
 	}
 

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head th:replace="format/layout :: head">
+</head>
+
+<body>
+    <section class="dashboard" style="display:flex">
+        <div th:replace="format/menuAdmin :: menu" style="z-index: 1000"></div>
+
+        <section class="main-content-admin">
+            <div th:replace="format/headerAdmin :: headerAdmin"></div>
+
+            <section class="content-hoc-vien mt-5">
+                <div class="hoc-vien-admin container">
+                    <!-- Alert messages -->
+                    <div th:if="${message}" th:data-message="${message}" th:data-type="message" style="display: none;"></div>
+                    <div th:if="${error}" th:data-message="${error}" th:data-type="error" style="display: none;"></div>
+                    <div th:if="${success}" th:data-message="${success}" th:data-type="success" style="display: none;"></div>
+
+                    <!-- Header with back button -->
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="d-flex align-items-center">
+                            <a th:href="@{/admin/lop_hoc/{id}/danh_sach(id=${lopHoc.lopHocID})}" class="btn btn-secondary me-2">
+                                <i class="fas fa-arrow-left"></i> Quay lại
+                            </a>
+                            <h4 class="mb-0">Chọn học viên cho lớp <span th:text="${lopHoc.tenLop}"></span></h4>
+                        </div>
+                    </div>
+
+                    <!-- Class Info Card -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title text-center">Thông tin lớp học</h5>
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <p><strong>Tên lớp:</strong> <span th:text="${lopHoc.tenLop}"></span></p>
+                                </div>
+                                <div class="col-md-3">
+                                    <p><strong>Lịch học:</strong> <span th:text="${lopHoc.lichHoc}"></span></p>
+                                </div>
+                                <div class="col-md-3">
+                                    <p><strong>Buổi học:</strong> <span th:text="${lopHoc.buoiHoc}"></span></p>
+                                </div>
+                                <div class="col-md-3">
+                                    <p><strong>Hạng:</strong> <span th:text="${lopHoc.hang.tenHang}"></span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+             
+
+                    <!-- Students Selection Form -->
+                    <form th:action="@{/admin/lop_hoc/{id}/them_hoc_vien(id=${lopHoc.lopHocID})}" method="post">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th style="width: 5%;">
+                                                    <div class="form-check">
+                                                        <input type="checkbox" id="selectAll" class="form-check-input">
+                                                    </div>
+                                                </th>
+                                                <th style="width: 5%;">STT</th>
+                                                <th style="width: 25%;">Họ và Tên</th>
+                                                <th style="width: 25%;">Email</th>
+                                                <th style="width: 15%;">Số điện thoại</th>
+                                                <th style="width: 25%;">Địa chỉ</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr th:each="hocVien, no : ${listHocVien}">
+                                                <td>
+                                                    <div class="form-check">
+                                                        <input type="checkbox" name="hocVienIds" th:value="${hocVien.hocVienID}" 
+                                                               class="form-check-input hoc-vien-checkbox">
+                                                    </div>
+                                                </td>
+                                                <td th:text="${no.index + 1}">1</td>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <div>
+                                                            <span class="fw-bold" th:text="${hocVien.hoTen}"></span>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td th:text="${hocVien.email}"></td>
+                                                <td th:text="${hocVien.sdt}"></td>
+                                                <td th:text="${hocVien.diaChi}"></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <!-- No students message -->
+                                <div th:if="${#lists.isEmpty(listHocVien)}" class="alert alert-info">
+                                    Không tìm thấy học viên nào.
+                                </div>
+
+                                <!-- Submit button -->
+                                <div class="mt-3 d-flex justify-content-between align-items-center">
+                                    <span class="text-muted" id="selectedCount">0 học viên được chọn</span>
+                                    <button type="submit" class="btn btn-success" id="addSelectedStudents">
+                                        <i class="fas fa-plus-circle me-2"></i>Thêm học viên đã chọn
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </section>
+        </section>
+    </section>
+
+    <!-- Scripts -->
+    <div th:replace="format/layout :: scripts"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle select all checkbox
+            const selectAllCheckbox = document.getElementById('selectAll');
+            const studentCheckboxes = document.querySelectorAll('.hoc-vien-checkbox');
+            const selectedCountSpan = document.getElementById('selectedCount');
+
+            function updateSelectedCount() {
+                const checkedCount = document.querySelectorAll('.hoc-vien-checkbox:checked').length;
+                selectedCountSpan.textContent = `${checkedCount} học viên được chọn`;
+            }
+
+            selectAllCheckbox.addEventListener('change', function() {
+                studentCheckboxes.forEach(checkbox => {
+                    checkbox.checked = this.checked;
+                });
+                updateSelectedCount();
+            });
+
+            // Handle individual checkbox changes
+            studentCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const allChecked = Array.from(studentCheckboxes).every(cb => cb.checked);
+                    selectAllCheckbox.checked = allChecked;
+                    updateSelectedCount();
+                });
+            });
+
+            // Handle form submission
+            const form = document.querySelector('form');
+            form.addEventListener('submit', function(e) {
+                const checkedBoxes = document.querySelectorAll('.hoc-vien-checkbox:checked');
+                if (checkedBoxes.length === 0) {
+                    e.preventDefault();
+                    Swal.fire({
+                        title: 'Thông báo!',
+                        text: 'Vui lòng chọn ít nhất một học viên',
+                        icon: 'warning',
+                        confirmButtonText: 'Đóng',
+                        confirmButtonColor: '#0d6efd'
+                    });
+                }
+            });
+
+            // Handle alert messages
+            const message = /*[[${message}]]*/ null;
+            const error = /*[[${error}]]*/ null;
+            const success = /*[[${success}]]*/ null;
+
+            if (success) {
+                Swal.fire({
+                    title: 'Thành công!',
+                    text: success,
+                    icon: 'success',
+                    confirmButtonText: 'Đóng',
+                    confirmButtonColor: '#198754'
+                });
+            }
+            
+            if (message) {
+                Swal.fire({
+                    title: 'Thông Báo!',
+                    text: message,
+                    icon: 'info',
+                    confirmButtonText: 'Đóng',
+                    confirmButtonColor: '#0d6efd'
+                });
+            }
+
+            if (error) {
+                Swal.fire({
+                    title: 'Lỗi!',
+                    text: error,
+                    icon: 'error',
+                    confirmButtonText: 'Đóng',
+                    confirmButtonColor: '#dc3545'
+                });
+            }
+        });
+    </script>
+
+    <style>
+        .table {
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        thead {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            background-color: #f8f9fa;
+        }
+
+        tbody {
+            display: block;
+            overflow-y: auto;
+            max-height: 500px;
+            width: 100%;
+        }
+
+        tr {
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+            vertical-align: middle;
+        }
+
+        .form-check-input {
+            cursor: pointer;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: rgba(0,0,0,.075);
+        }
+
+        .card {
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+
+        .card-title {
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-body p {
+            margin-bottom: 0.5rem;
+        }
+
+        .card-body strong {
+            color: #495057;
+        }
+
+        tbody::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        tbody::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        tbody::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+
+        tbody::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        .fw-bold {
+            font-weight: 600;
+        }
+    </style>
+</body>
+</html> 

@@ -53,6 +53,10 @@
 			            </div>
 			        </div>
 			    </div>
+			    
+			     <button class="btn btn-success" id="add-new-teacher">
+                    <a th:href="@{/admin/lop_hoc/{id}/chon(id=${lopHoc.lopHocID})}" class="text-decoration-none" style="color:white">Thêm Học Viên</a>
+                </button>
 
                     <!-- Students Table -->
 	                <table class="table table-striped" style="width: 100%;">
@@ -62,6 +66,7 @@
 				                <th style="width: 30%;">Họ và Tên</th>
 				                <th style="width: 30%;">Email</th>
 				                <th style="width: 30%;">Số điện thoại</th>
+				                <th style="width: 10%;">Thao tác</th>
 				            </tr>
 				        </thead>
 				        <tbody style="height: 400px; overflow-y: auto;">
@@ -69,12 +74,23 @@
 				                <td style="width: 10%;" th:text="${no.index + 1}">1</td>
 				                <td style="width: 30%;">
 				                    <a th:href="@{/admin/hoc_vien/chi_tiet/{id}(id=${hocVien.hocVienID})}" 
-				                       class="text-decoration-none text-primary hover-effect">
+				                       class="text-decoration-none text-primary hover-effect" style="color:black;">
 				                        <span th:text="${hocVien.hoTen}"></span>
 				                    </a>
 				                </td>
 				                <td style="width: 30%;" th:text="${hocVien.email}"></td>
 				                <td style="width: 30%;" th:text="${hocVien.sdt}"></td>
+				                <td style="width: 10%;">
+				                    <form th:action="@{/admin/lop_hoc/{lopHocID}/xoa_hoc_vien(lopHocID=${lopHoc.lopHocID})}" 
+				                          method="post" style="display: inline;"
+				                          th:id="'deleteForm-' + ${hocVien.hocVienID}">
+				                        <input type="hidden" name="hocVienID" th:value="${hocVien.hocVienID}"/>
+				                        <button type="button" class="btn btn-danger btn-sm"
+				                                th:onclick="'confirmDelete(' + ${hocVien.hocVienID} + ')'">
+				                            <i class="fas fa-trash"></i>
+				                        </button>
+				                    </form>
+				                </td>
 				            </tr>
 				        </tbody>
 				    </table>
@@ -127,6 +143,23 @@
                 });
             }
         });
+
+        function confirmDelete(hocVienID) {
+            Swal.fire({
+                title: 'Xác nhận xóa?',
+                text: "Bạn có chắc chắn muốn xóa học viên này khỏi lớp?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Xóa',
+                cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('deleteForm-' + hocVienID).submit();
+                }
+            });
+        }
     </script>
     	<style>
     /* Style cho bảng */

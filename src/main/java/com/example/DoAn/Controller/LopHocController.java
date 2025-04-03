@@ -417,4 +417,115 @@ public class LopHocController {
 		}
 	}
 
+	@GetMapping("/{id}/chon")
+	public String chonHocVien(@PathVariable("id") Integer lopHocID, Model model, Authentication authentication) {
+		try {
+			// Get user info
+			String userName = authentication.getName();
+			Optional<AdminAccount> adminOptional = adminService.findByUserName(userName);
+			if (adminOptional.isPresent()) {
+				AdminAccount admin = adminOptional.get();
+				model.addAttribute("userName", admin.getUserName());
+			}
+
+			// Get class info
+			LopHoc lopHoc = lopHocService.findByLopHocID(lopHocID);
+			if (lopHoc == null) {
+				model.addAttribute("error", "Lớp học không tồn tại");
+				return "redirect:/admin/lop_hoc";
+			}
+
+			// Get available students (not in this class)
+			List<HocVien> availableStudents = hocVienService.findHocVienNotInLopHoc(lopHocID);
+
+			if (availableStudents.isEmpty()) {
+				model.addAttribute("message", "Không có học viên nào khả dụng để thêm vào lớp");
+			}
+
+			model.addAttribute("lopHoc", lopHoc);
+			model.addAttribute("listHocVien", availableStudents);
+			model.addAttribute("pageTitle", "Chọn học viên cho lớp - " + lopHoc.getTenLop());
+
+			return "/admin/lopHoc/chonHocVien";
+		} catch (Exception e) {
+			model.addAttribute("error", "Đã xảy ra lỗi khi tải danh sách học viên: " + e.getMessage());
+			return "redirect:/admin/lop_hoc";
+		}
+	}
+
+	@PostMapping("/{id}/them_hoc_vien")
+	public String themHocVien(@PathVariable("id") Integer lopHocID,
+			@RequestParam("hocVienIds") List<Integer> hocVienIds, RedirectAttributes redirectAttributes,
+			Authentication authentication) {
+		try {
+			String nguoiThucHien = authentication.getName();
+
+			// Get class info
+			LopHoc lopHoc = lopHocService.findByLopHocID(lopHocID);
+			if (lopHoc == null) {
+				redirectAttributes.addFlashAttribute("error", "Lớp học không tồn tại");
+				return "redirect:/admin/lop_hoc";
+			}
+
+			int soHocVienThem = 0;
+			// Add each selected student to the class
+			for (Integer hocVienId : hocVienIds) {
+				HocVien hocVien = hocVienService.findByID(hocVienId);
+				if (hocVien != null && !hocVien.getLopHocs().contains(lopHoc)) {
+					hocVien.addLopHoc(lopHoc);
+					hocVienService.updateHocVien(hocVien, nguoiThucHien);
+					soHocVienThem++;
+				}
+			}
+
+			// Cập nhật số lượng học viên trong lớp
+			if (soHocVienThem > 0) {
+				lopHoc.capNhatSoLuong();
+				lopHocService.updateLopHoc(lopHoc, null, nguoiThucHien);
+			}
+
+			redirectAttributes.addFlashAttribute("success",
+					"Đã thêm " + soHocVienThem + " học viên vào lớp thành công");
+			return "redirect:/admin/lop_hoc/" + lopHocID + "/danh_sach";
+		} catch (Exception e) {
+			redirectAttributes.addFlashAttribute("error", "Đã xảy ra lỗi khi thêm học viên: " + e.getMessage());
+			return "redirect:/admin/lop_hoc/" + lopHocID + "/chon_hoc_vien";
+		}
+	}
+
+	@PostMapping("/{lopHocID}/xoa_hoc_vien")
+	public String xoaHocVienKhoiLop(@PathVariable("lopHocID") Integer lopHocID,
+			@RequestParam("hocVienID") Integer hocVienID, RedirectAttributes redirectAttributes,
+			Authentication authentication) {
+		try {
+			String nguoiThucHien = authentication.getName();
+			
+			// Lấy thông tin lớp học và học viên
+			LopHoc lopHoc = lopHocService.findByLopHocID(lopHocID);
+			HocVien hocVien = hocVienService.findByID(hocVienID);
+			
+			if (lopHoc == null || hocVien == null) {
+				redirectAttributes.addFlashAttribute("error", "Không tìm thấy thông tin lớp học hoặc học viên");
+				return "redirect:/admin/lop_hoc/" + lopHocID + "/danh_sach";
+			}
+			
+			// Xóa học viên khỏi lớp
+			hocVien.removeLopHoc(lopHoc);
+			
+			// Cập nhật số lượng học viên
+			lopHoc.capNhatSoLuong();
+			
+			// Cập nhật thông tin lớp học và học viên
+			lopHocService.updateLopHoc(lopHoc, null, nguoiThucHien);
+			hocVienService.updateHocVien(hocVien, nguoiThucHien);
+			
+			redirectAttributes.addFlashAttribute("success", "Đã xóa học viên khỏi lớp thành công");
+			return "redirect:/admin/lop_hoc/" + lopHocID + "/danh_sach";
+			
+		} catch (Exception e) {
+			redirectAttributes.addFlashAttribute("error", "Lỗi khi xóa học viên khỏi lớp: " + e.getMessage());
+			return "redirect:/admin/lop_hoc/" + lopHocID + "/danh_sach";
+		}
+	}
+
 }

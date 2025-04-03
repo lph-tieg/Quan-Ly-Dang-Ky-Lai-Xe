@@ -37,6 +37,9 @@ public interface HocVienRepository extends JpaRepository<HocVien, Integer> {
 	// Tìm học viên theo tên không phân biệt chữ hoa, thường cho phân trang
 	Page<HocVien> findByHoTenContainingIgnoreCase(String hoTen, Pageable pageable);
 
+	// Tìm học viên theo tên không phân biệt chữ hoa, thường
+	List<HocVien> findByHoTenContainingIgnoreCase(String hoTen);
+
 	// Tìm học viên theo sdt gần giống
 	Page<HocVien> findBySdtContaining(String sdt, Pageable pageable);
 
@@ -54,12 +57,16 @@ public interface HocVienRepository extends JpaRepository<HocVien, Integer> {
 	List<String> findDistinctLichHoc();
 
 	// Tìm học viên theo ID lớp học
-	@Query("SELECT h FROM HocVien h WHERE h.lopHoc.lopHocID = :lopHocID")
+	@Query("SELECT h FROM HocVien h JOIN h.lopHocs l WHERE l.lopHocID = :lopHocID")
 	List<HocVien> findByLopHocID(@Param("lopHocID") Integer lopHocID);
 
 	// Tìm học viên theo lớp học
-	@Query("SELECT h FROM HocVien h WHERE h.lopHoc = :lopHoc")
+	@Query("SELECT h FROM HocVien h JOIN h.lopHocs l WHERE l = :lopHoc")
 	List<HocVien> findByLopHoc(@Param("lopHoc") LopHoc lopHoc);
+
+	// Tìm tất cả học viên chưa có trong lớp học hiện tại
+	@Query("SELECT h FROM HocVien h WHERE NOT EXISTS (SELECT 1 FROM h.lopHocs l WHERE l.lopHocID = :lopHocID)")
+	List<HocVien> findHocVienNotInLopHoc(@Param("lopHocID") Integer lopHocID);
 
 	// Cập nhật giảng viên dạy cho học viên
 	@Modifying

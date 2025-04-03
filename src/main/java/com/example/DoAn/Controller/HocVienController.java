@@ -307,92 +307,48 @@ public class HocVienController {
 				changes.append("Địa chỉ: ").append(hocVienHienTai.getDiaChi()).append(" → ").append(hocVien.getDiaChi())
 						.append("\n");
 			}
-			if (!Objects.equals(hocVienHienTai.getHangDK(), hocVien.getHangDK())) {
-				changes.append("Hạng đăng ký: ").append(hocVienHienTai.getHangDK()).append(" → ")
-						.append(hocVien.getHangDK()).append("\n");
-			}
 
-			// So sánh xe tập lái
-			String oldXe = hocVienHienTai.getXeTapLai() != null ? hocVienHienTai.getXeTapLai().getTenXe() : "Chưa có";
-			String newXe = hocVien.getXeTapLai() != null ? hocVien.getXeTapLai().getTenXe() : "Chưa có";
-			if (!Objects.equals(oldXe, newXe)) {
-				changes.append("Xe tập lái: ").append(oldXe).append(" → ").append(newXe).append("\n");
-			}
+			// Cập nhật thông tin cơ bản
+			hocVienHienTai.setHoTen(hocVien.getHoTen());
+			hocVienHienTai.setEmail(hocVien.getEmail());
+			hocVienHienTai.setSdt(hocVien.getSdt());
+			hocVienHienTai.setDiaChi(hocVien.getDiaChi());
+			hocVienHienTai.setHangDK(hocVien.getHangDK());
+			hocVienHienTai.setBuoiHoc(hocVien.getBuoiHoc());
+			hocVienHienTai.setLichHoc(hocVien.getLichHoc());
+			hocVienHienTai.setLoaiXeDK(hocVien.getLoaiXeDK());
+			hocVienHienTai.setLoaiThucHanh(hocVien.getLoaiThucHanh());
+			hocVienHienTai.setGiangVienChinh(hocVien.getGiangVienChinh());
 
-			// So sánh buổi học
-			if (!Objects.equals(hocVienHienTai.getBuoiHoc(), hocVien.getBuoiHoc())) {
-				changes.append("Buổi thực hành: ")
-						.append(hocVienHienTai.getBuoiHoc() != null ? hocVienHienTai.getBuoiHoc() : "Chưa có")
-						.append(" → ").append(hocVien.getBuoiHoc() != null ? hocVien.getBuoiHoc() : "Chưa có")
-						.append("\n");
-			}
-
-			// So sánh lịch học
-			if (!Objects.equals(hocVienHienTai.getLichHoc(), hocVien.getLichHoc())) {
-				changes.append("Lịch học: ")
-						.append(hocVienHienTai.getLichHoc() != null ? hocVienHienTai.getLichHoc() : "Chưa có")
-						.append(" → ").append(hocVien.getLichHoc() != null ? hocVien.getLichHoc() : "Chưa có")
-						.append("\n");
-			}
-
-			// Kiểm tra thay đổi lớp học
-			boolean coThayDoiLop = false;
-			if (!Objects.equals(hocVienHienTai.getLopHoc() != null ? hocVienHienTai.getLopHoc().getLopHocID() : null,
-					lopHocID)) {
-				coThayDoiLop = true;
-				changes.append("Lớp học: ").append(
-						hocVienHienTai.getLopHoc() != null ? hocVienHienTai.getLopHoc().getTenLop() : "Chưa có lớp")
-						.append(" → ").append(lopHocMoi.getTenLop()).append("\n");
-
-				if (hocVienHienTai.getLopHoc() != null) {
-					// Giảm số lượng học viên ở lớp cũ
-					LopHoc lopHocCu = hocVienHienTai.getLopHoc();
-					lopHocCu.giamSoLuong();
-					lopHocService.updateLopHoc(lopHocCu, lopHocCu.getListGiangVien().stream()
-							.map(gv -> gv.getGiangVienID()).collect(Collectors.toList()), nguoiThucHien);
+			// Cập nhật lớp học
+			if (!hocVienHienTai.getLopHocs().contains(lopHocMoi)) {
+				// Lưu lại các lớp học cũ để kiểm tra
+				List<LopHoc> lopHocCu = new ArrayList<>(hocVienHienTai.getLopHocs());
+				
+				// Xóa học viên khỏi các lớp cũ và cập nhật số lượng
+				for (LopHoc lop : lopHocCu) {
+					hocVienHienTai.removeLopHoc(lop);
+					lopHocService.updateLopHoc(lop, null, nguoiThucHien);
+					changes.append("Xóa khỏi lớp: ").append(lop.getTenLop()).append("\n");
 				}
-
-				// Tăng số lượng học viên ở lớp mới
+				
+				// Thêm lớp học mới
+				hocVienHienTai.addLopHoc(lopHocMoi);
+				changes.append("Thêm lớp học: ").append(lopHocMoi.getTenLop()).append("\n");
+				
+				// Cập nhật số lượng học viên cho lớp mới
 				lopHocMoi.tangSoLuong();
+				lopHocService.updateLopHoc(lopHocMoi, null, nguoiThucHien);
 			}
 
-			// So sánh ghi chú
-			if (!Objects.equals(hocVienHienTai.getGhiChu(), hocVien.getGhiChu())) {
-				changes.append("Ghi chú: ")
-						.append(hocVienHienTai.getGhiChu() != null ? hocVienHienTai.getGhiChu() : "Không có")
-						.append(" → ").append(hocVien.getGhiChu() != null ? hocVien.getGhiChu() : "Không có")
-						.append("\n");
-			}
+			// Lưu thay đổi
+			hocVienService.updateHocVien(hocVienHienTai, nguoiThucHien);
 
-			// Cập nhật thông tin học viên
-			hocVien.setLopHoc(lopHocMoi);
-			HocVien updatedHocVien = hocVienService.updateHocVien(hocVien, nguoiThucHien);
-
-			if (updatedHocVien != null) {
-				// Cập nhật lớp học mới nếu có thay đổi
-				if (coThayDoiLop) {
-					lopHocService.updateLopHoc(lopHocMoi, lopHocMoi.getListGiangVien().stream()
-							.map(gv -> gv.getGiangVienID()).collect(Collectors.toList()), nguoiThucHien);
-				}
-
-				// Ghi log nếu có thay đổi
-				if (changes.length() > 0) {
-					String noiDung = String.format("Cập nhật thông tin học viên %s:\n%s", hocVien.getHoTen(),
-							changes.toString().trim());
-					lichSuService.themLichSu(nguoiThucHien, "Cập Nhật", "Học Viên", noiDung);
-				}
-
-				redirectAttributes.addFlashAttribute("success", "Cập nhật thông tin thành công");
-				return "redirect:/admin/hoc_vien";
-			} else {
-				model.addAttribute("error", "Không thể cập nhật thông tin học viên");
-				return setupUpdatePage(hocVien.getHocVienID(), model, authentication);
-			}
-
+			redirectAttributes.addFlashAttribute("success", "Cập nhật học viên thành công");
+			return "redirect:/admin/hoc_vien";
 		} catch (Exception e) {
-			model.addAttribute("error", String.format("Lỗi khi cập nhật học viên %s: %s", hocVien.getHoTen(),
-					e.getMessage().replace("Lỗi khi cập nhật học viên: ", "")));
-			return setupUpdatePage(hocVien.getHocVienID(), model, authentication);
+			redirectAttributes.addFlashAttribute("error", "Lỗi khi cập nhật học viên: " + e.getMessage());
+			return "redirect:/admin/hoc_vien";
 		}
 	}
 

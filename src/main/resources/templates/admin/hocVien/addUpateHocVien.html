@@ -119,15 +119,15 @@
 		
 		               <div class="form-group">
 		                <label for="lopHoc">Lớp học:</label>
-		                <select class="form-control" id="lopHoc" name="lopHocID"  required>
-		                    <option value="" th:if="${hocVien.lopHoc == null}">Chọn lớp học</option>
-		                    <option th:each="lop : ${listLopHoc}" 
+		                <select class="form-control" id="lopHoc" name="lopHocID" required>
+		                    <option value="">Chọn lớp học</option>
+		                    <option th:each="lop : ${listLopHoc}"
 		                            th:value="${lop.lopHocID}"
 		                            th:text="${lop.tenLop}"
 		                            th:attr="data-hang=${lop.hang.tenHang},
 		                                    data-lich-hoc=${lop.lichHoc},
 		                                    data-buoi-hoc=${lop.buoiHoc}"
-		                            th:selected="${hocVien.lopHoc != null && hocVien.lopHoc.lopHocID == lop.lopHocID}">
+		                            th:selected="${hocVien != null and hocVien.lopHocs != null and hocVien.lopHocs.contains(lop)}">
 		                    </option>
 		                </select>
 		            </div>

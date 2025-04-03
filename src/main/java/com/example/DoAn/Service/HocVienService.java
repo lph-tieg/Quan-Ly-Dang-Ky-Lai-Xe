@@ -94,4 +94,12 @@ public interface HocVienService {
 	// Trả về danh sách học viên theo ID lớp học
 	List<HocVien> findHocVienByLopHoc(Integer lopHocID);
 
+	// Tìm học viên theo tên không phân biệt chữ hoa, thường
+	public List<HocVien> findByHoTenContainingIgnoreCase(String keyword);
+
+	List<HocVien> findAllHocVien();
+
+	// Tìm học viên chưa có trong lớp học
+	List<HocVien> findHocVienNotInLopHoc(Integer lopHocID);
+
 }

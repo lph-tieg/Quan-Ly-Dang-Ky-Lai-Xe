@@ -109,7 +109,11 @@
                             <tr th:each="hocVien, no: ${pageHocVien}">
                                 <th scope="row" th:text="${no.index +1}">0</th>
                                 <td th:text="*{hocVien.hoTen}"></td>
-                                <td th:text="*{hocVien.lopHoc}"></td>
+                                <td>
+                                    <span th:each="lopHoc, iterStat : *{hocVien.lopHocs}">
+                                        <span th:text="${lopHoc.tenLop + (iterStat.last ? '' : ', ')}"></span>
+                                    </span>
+                                </td>
                                 <td th:text="*{hocVien.buoiHoc}"></td>
                                 <td th:text="*{hocVien.hangDK}"></td>
                                 <td th:text="*{hocVien.loaiXeDK}"></td>
