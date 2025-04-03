@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="format/layout :: head">
+</head>
+
+<body>
+    <section class="dashboard" style="display:flex">
+        <div th:replace="format/menuAdmin :: menu" style="z-index: 1000"></div>
+
+        <section class="main-content-admin">
+            <div th:replace="format/headerAdmin :: headerAdmin"></div>
+
+            <section class="content-hoc-vien mt-5">
+                <div class="hoc-vien-admin container">
+					<div class="d-flex gap-3">
+					    <form th:action="@{/admin/danh_sach_dang_ky}" method="get" class="d-flex gap-2">
+					        <!-- Lọc theo hạng -->
+					        <select name="hang" class="form-select" style="width: 200px;" onchange="this.form.submit()">
+					            <option value="">Tất cả hạng</option>
+					            <option th:each="hang : ${listHang}"
+					                    th:value="${hang.tenHang}"
+					                    th:text="${hang.tenHang}"
+					                    th:selected="${selectedHang != null and selectedHang == hang.tenHang}">
+					            </option>
+					        </select>
+					        <!-- Lọc theo buổi học -->
+					        <select name="buoiHoc" class="form-select" style="width: 165px;" onchange="this.form.submit()">
+					            <option value="">Tất cả buổi học</option>
+					            <option value="Sáng" th:selected="${selectedBuoiHoc == 'Sáng'}">Sáng</option>
+					            <option value="Chiều" th:selected="${selectedBuoiHoc == 'Chiều'}">Chiều</option>
+					            <option value="Tối" th:selected="${selectedBuoiHoc == 'Tối'}">Tối</option>
+					        </select>
+					        <!-- Lọc theo lịch học -->
+					        <select name="lichHoc" class="form-select" style="width: 155px;" onchange="this.form.submit()">
+					            <option value="">Tất cả lịch học</option>
+					            <option value="T2-T4-T6" th:selected="${selectedLichHoc == 'T2-T4-T6'}">T2-T4-T6</option>
+					            <option value="T3-T5-T7" th:selected="${selectedLichHoc == 'T3-T5-T7'}">T3-T5-T7</option>
+					        </select>
+					        <!-- Lọc theo loại thực hành -->
+					        <select name="thucHanh" class="form-select" style="width: 200px;" onchange="this.form.submit()">
+					            <option value="">Tất cả loại thực hành</option>
+					            <option value="Dân Tập" th:selected="${selectedThucHanh == 'Dân Tập'}">Dân Tập</option>
+					            <option value="Sa Hình" th:selected="${selectedThucHanh == 'Sa Hình'}">Sa Hình</option>
+					            <option value="Đường Trường" th:selected="${selectedThucHanh == 'Đường Trường'}">Đường Trường</option>
+					        </select>
+					    </form>
+					    <form th:action="@{/admin/danh_sach_dang_ky}" method="get">
+					        <div class="search-container" style="margin-left:130px;">
+					            <input type="text" name="keyword" th:value="${keyword}" placeholder="Nhập từ khóa tìm kiếm..." class="search-input">
+					            <button type="submit" class="search-button">
+					                <i class="fa-solid fa-magnifying-glass"></i> Tìm kiếm
+					            </button>
+					        </div>
+					    </form>
+					</div>
+                    <table class="table table-striped mt-2">
+                        <thead>
+                            <tr>
+                                <th scope="col">STT</th>
+                                <th scope="col">Họ và Tên</th>
+                                <th scope="col">Giảng Viên Đăng Ký</th>
+                                <th scope="col">Lịch Học</th>
+                                <th scope="col">Buổi Học</th>
+                                <th scope="col">Hạng Đăng Ký</th>
+                                <th scope="col">Xe Đăng Ký</th>
+                                <th scope="col">Loại Thực Hành</th>
+                                <th scope="col">Thông tin học viên</th>
+                                <th scope="col"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="hocVienDk, no: ${pageHocVienDK}">
+                                <th scope="row" th:text="${no.index +1}">0</th>
+                                <td th:text="*{hocVienDk.hoTen}"></td>
+                                <td th:text="*{hocVienDk.GVChinh}"></td>
+                                <td th:text="*{hocVienDk.lichHoc}"></td>
+                                <td th:text="*{hocVienDk.buoiHoc}"></td>
+                                <td th:text="*{hocVienDk.hangDK}"></td>
+                                <td th:text="*{hocVienDk.loaiXeDK}"></td>
+                                <td th:text="*{hocVienDk.loaiThucHanh}"></td>
+                                <td><a th:href="@{/admin/danh_sach_dang_ky/{id}(id=${hocVienDk.id})}" class="text-decoration-none">Xem Thêm</a></td>
+                                <td>
+                                    <a th:href="@{/admin/danh_sach_dang_ky/chon_lop/{id}(id=${hocVienDk.id})}" class="btn btn-success">
+                                        Chọn Lớp
+                                    </a>
+                                </td>
+                                <td ><button class="btn btn-danger ms-2" 
+                                            th:onclick="'confirmDelete(\'' + ${hocVienDk.id} + '\')'">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                 </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <nav th:if="${totalPage > 0}" aria-label="Page navigation example">
+					    <ul class="pagination">
+					        <!-- Previous Page Link -->
+					        <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
+					            <a class="page-link" th:href="@{'?pageNo='+${currentPage - 1}}" aria-label="Previous">
+					                <span aria-hidden="true">&laquo;</span>
+					            </a>
+					        </li>
+					        
+					        <!-- Page Number Links -->
+					        <li class="page-item" th:each="i : ${#numbers.sequence(1, totalPage)}" 
+					            th:classappend="${currentPage == i} ? 'active'">
+					            <a class="page-link" th:href="@{'?pageNo='+${i}}" th:text="${i}"></a>
+					        </li>
+					        
+					        <!-- Next Page Link -->
+					        <li class="page-item" th:classappend="${currentPage == totalPage} ? 'disabled'">
+					            <a class="page-link" th:href="@{'?pageNo='+${currentPage + 1}}" aria-label="Next">
+					                <span aria-hidden="true">&raquo;</span>
+					            </a>
+					        </li>
+					    </ul>
+					</nav>
+                </div>
+            </section>
+        </section>
+    </section>
+
+    <!-- Thêm scripts fragment -->
+    <div th:replace="format/layout :: scripts"></div>
+
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            const message = /*[[${message}]]*/ null;
+            const error = /*[[${error}]]*/ null;
+             const success = /*[[${success}]]*/ null;
+
+            if (message) {
+                Swal.fire({
+                    title: 'Thông Báo!',
+                    text: message,
+                    icon: 'info',
+                    confirmButtonText:'Đóng',
+                    confirmButtonColor:'#198754',                    
+                });
+            }
+            
+              if (success) {
+                Swal.fire({
+                    title: 'Thành công!',
+                    text: success,
+                    icon: 'success',
+                    confirmButtonText:'Đóng',
+                    confirmButtonColor:'#198754',                    
+                });
+            }
+
+            if (error) {
+                Swal.fire({
+                    title: 'Lỗi!',
+                    text: error,
+                    icon: 'error',
+                 
+                    confirmButtonText:'Đóng',
+                    
+                    confirmButtonColor:'#dc3545',
+                    
+                });
+            }
+        });
+        
+       // ... existing code ...
+        function confirmDelete(id) {
+            Swal.fire({
+                title: "Xác nhận xoá?",
+                text: "Bạn có chắc chắn muốn xoá học viên này không?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Xoá',
+                cancelButtonText: 'Huỷ'
+            }).then((result) => {
+                if(result.isConfirmed) {
+                    window.location.href = `/admin/danh_sach_dang_ky/delete/${id}`;
+                }
+            });
+        }
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.9.1/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="/css/menuAdmin.css">
+    <!-- Thêm SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <title>Document</title>
+</head>
+
+<body>
+  
+    <section class="dashboard" style="display:flex">
+        <div th:replace="format/menuAdmin :: menu" style="z-index: 1000"></div>
+
+        <section class="main-content-admin">
+
+            <div th:replace="format/headerAdmin :: headerAdmin"></div>
+
+             <section class="content-hoc-vien mt-3">
+                <div class="container mt-2">
+                
+        <h1 class="text-center">Cập Nhật Thông Tin Học Viên</h1>
+
+        <!-- Thẻ div ẩn để lưu thông báo -->
+        <div id="serverMessage" th:data-error="${error}" th:data-success="${success}" style="display: none;"></div>
+
+        <form th:action="@{/admin/hoc_vien/cap_nhat}" method="post" th:object="${hocVien}" id="updateForm">
+    
+		    <input type="hidden" th:field="*{hocVienID}">
+		
+		    <div class="row mt-4">
+		        <!-- Cột Trái -->
+		        <div class="col-md-6">
+		            <div class="form-group">
+		                <label for="hoTen">Họ Tên:</label>
+		                <input type="text" class="form-control" id="hoTen" th:field="*{hoTen}" required maxlength="50"/>
+		            </div>
+		
+		            <div class="form-group mt-3">
+		                <label for="sdt">Số Điện Thoại:</label>
+		                <input type="text" class="form-control" id="sdt" th:field="*{sdt}" required maxlength="11"/>
+		            </div>
+		
+		            <div class="form-group mt-3">
+		                <label for="email">Email:</label>
+		                <input type="email" class="form-control" id="email" th:field="*{email}" required maxlength="30"/>
+		            </div>
+		
+		            <div class="form-group mt-3">
+		                <label for="diaChi">Địa Chỉ:</label>
+		                <input type="text" class="form-control" id="diaChi" th:field="*{diaChi}" required maxlength="100"/>
+		            </div>
+		
+		            <div class="form-group mt-3">
+		                <label for="ngayDKKH">Ngày Đăng Ký:</label>
+		                <input type="date" class="form-control" id="ngayDKKH" th:field="*{ngayDKKH}" required/>
+		            </div>
+		              <div class="form-group mt-3">
+		                <label for="loaiThucHanh">Loại Thực Hành:</label>
+		                <select class="form-control" id="loaiThucHanh" th:field="*{loaiThucHanh}" required>
+		                    <option value="" disabled selected>Chọn loại thực hành</option>
+		                    <option value="Dân Tập">Dân Tập</option>
+		                    <option value="Sa Hình">Sa Hình</option>
+		                    <option value="Đường Trường">Đường Trường</option>
+		                </select>
+		            </div>
+		        </div>
+		
+		        <!-- Cột Phải -->
+		        <div class="col-md-6">
+		            <div class="form-group">
+		                <label for="hangDK">Hạng Đăng Ký:</label>
+		                <select class="form-control" id="hangDK" th:field="*{hangDK}" required>
+		                    <option value="" disabled selected>Hạng Đăng Ký</option>
+		                    <option th:each="hang : ${listHang}" 
+			                        th:value="${hang.tenHang}" 
+			                        th:text="${hang.tenHang}"
+			                        th:selected="${hocVien.hangDK == hang.tenHang}">
+			                </option>
+		                </select>
+		            </div>
+		
+		            <div class="form-group mt-3">
+		                <label for="loaiXeDK">Loại Xe Tập Lái:</label>
+		                <select class="form-control" id="loaiXeDK" th:field="*{loaiXeDK}" required>
+		                    <option value="" disabled selected>Chọn Loại Xe</option>
+		                    <option th:each="xeTapLai : ${listXe}" th:value="${xeTapLai.tenXe}" th:text="${xeTapLai.tenXe}"></option>
+		                </select>
+		            </div>
+		
+		            <div class="form-group mt-3">
+		                <label for="buoiHoc">Buổi thực hành:</label>
+		                <select class="form-control" id="buoiHoc" th:field="*{buoiHoc}" required>
+		                    <option value="" disabled selected>Chọn Buổi Học</option>
+		                    <option value="Sáng">Sáng</option>
+		                    <option value="Chiều">Chiều</option>
+		                    <option value="Tối">Tối</option>
+		                </select>
+		            </div>
+		
+		            <div class="form-group mt-3">
+		                <label for="ghiChu">Ghi Chú:</label>
+		                <textarea class="form-control" id="ghiChu" th:field="*{ghiChu}" maxlength="255"></textarea>
+		            </div>
+		
+		            <div class="form-group mt-3">
+		                <label for="thucHanh">Lịch học:</label>
+		                <input type="text" class="form-control" id="thucHanh" th:field="*{lichHoc}" maxlength="50"/>
+		            </div>
+		
+		               <div class="form-group">
+		                <label for="lopHoc">Lớp học:</label>
+		                <select class="form-control" id="lopHoc" name="lopHocID"  required>
+		                    <option value="" th:if="${hocVien.lopHoc == null}">Chọn lớp học</option>
+		                    <option th:each="lop : ${listLopHoc}" 
+		                            th:value="${lop.lopHocID}"
+		                            th:text="${lop.tenLop}"
+		                            th:attr="data-hang=${lop.hang.tenHang},
+		                                    data-lich-hoc=${lop.lichHoc},
+		                                    data-buoi-hoc=${lop.buoiHoc}"
+		                            th:selected="${hocVien.lopHoc != null && hocVien.lopHoc.lopHocID == lop.lopHocID}">
+		                    </option>
+		                </select>
+		            </div>
+		        </div>
+		    </div>
+		
+		    <!-- Nút hành động -->
+		    <div class="text-center mt-4">
+		        <button type="submit" class="btn btn-primary">Cập Nhật</button>
+		        <a th:href="@{/admin/hoc_vien}" class="btn btn-secondary">Quay lại danh sách</a>
+		    </div>
+		</form>
+    </div>
+                
+            </section>
+
+        </section>
+
+
+    </section>
+     <script>
+function filterLopHoc() {
+    const hangDK = document.getElementById('hangDK').value;
+    const lichHoc = document.getElementById('thucHanh').value;
+    const buoiHoc = document.getElementById('buoiHoc').value;
+    const lopHocSelect = document.getElementById('lopHoc');
+    const options = lopHocSelect.getElementsByTagName('option');
+    const currentSelectedValue = lopHocSelect.value;
+
+    console.log('Filtering with:', {
+        hangDK: hangDK,
+        lichHoc: lichHoc,
+        buoiHoc: buoiHoc,
+        currentSelected: currentSelectedValue
+    });
+
+    // Ẩn tất cả các options trừ option đầu tiên (nếu có)
+    for (let i = 0; i < options.length; i++) {
+        const option = options[i];
+        if (i === 0 && option.value === "") {
+            continue; // Bỏ qua option "Chọn lớp học"
+        }
+        option.style.display = 'none';
+    }
+
+    // Hiển thị các lớp phù hợp
+    let hasVisibleOptions = false;
+    for (let i = 0; i < options.length; i++) {
+        const option = options[i];
+        if (option.value === "") continue;
+
+        const lopHang = option.getAttribute('data-hang');
+        const lopLichHoc = option.getAttribute('data-lich-hoc');
+        const lopBuoiHoc = option.getAttribute('data-buoi-hoc');
+
+        console.log('Checking option:', {
+            lopHang: lopHang,
+            lopLichHoc: lopLichHoc,
+            lopBuoiHoc: lopBuoiHoc,
+            hangDK: hangDK,
+            lichHoc: lichHoc,
+            buoiHoc: buoiHoc
+        });
+
+        // Nếu chưa chọn đủ các tiêu chí, hiển thị tất cả các lớp
+        if (!hangDK || !lichHoc || !buoiHoc) {
+            option.style.display = '';
+            hasVisibleOptions = true;
+            continue;
+        }
+
+        // So sánh các tiêu chí
+        if (lopHang === hangDK && 
+            lopLichHoc === lichHoc && 
+            lopBuoiHoc === buoiHoc) {
+            option.style.display = '';
+            hasVisibleOptions = true;
+        }
+    }
+
+    // Nếu không có lớp phù hợp
+    if (!hasVisibleOptions) {
+        // Kiểm tra xem đã có option "Không có lớp phù hợp" chưa
+        let noClassOption = Array.from(options).find(opt => opt.text === 'Không có lớp phù hợp');
+        if (!noClassOption) {
+            noClassOption = document.createElement('option');
+            noClassOption.text = 'Không có lớp phù hợp';
+            noClassOption.disabled = true;
+            lopHocSelect.add(noClassOption);
+        }
+        noClassOption.style.display = '';
+    } else {
+        // Xóa option "Không có lớp phù hợp" nếu có
+        const noClassOption = Array.from(options).find(opt => opt.text === 'Không có lớp phù hợp');
+        if (noClassOption) {
+            lopHocSelect.removeChild(noClassOption);
+        }
+    }
+
+    // Nếu giá trị đang chọn vẫn hợp lệ, giữ nguyên
+    if (currentSelectedValue && Array.from(options).some(opt => 
+        opt.value === currentSelectedValue && opt.style.display !== 'none')) {
+        lopHocSelect.value = currentSelectedValue;
+    }
+}
+
+// Thêm event listeners
+document.getElementById('hangDK').addEventListener('change', filterLopHoc);
+document.getElementById('thucHanh').addEventListener('change', filterLopHoc);
+document.getElementById('buoiHoc').addEventListener('change', filterLopHoc);
+
+// Gọi hàm filter khi trang load để hiển thị đúng các lớp phù hợp
+document.addEventListener('DOMContentLoaded', function() {
+    // Đảm bảo các giá trị được load đúng trước khi filter
+    setTimeout(filterLopHoc, 100);
+});
+
+// Thêm hàm hiển thị thông báo lỗi
+function showError(message) {
+    Swal.fire({
+        title: 'Lỗi!',
+        text: message,
+        icon: 'error',
+        confirmButtonText: 'Đóng',
+        confirmButtonColor: '#dc3545'
+    });
+}
+
+// Thêm hàm hiển thị thông báo thành công
+function showSuccess(message) {
+    Swal.fire({
+        title: 'Thành công!',
+        text: message,
+        icon: 'success',
+        confirmButtonText: 'Đóng',
+        confirmButtonColor: '#28a745'
+    });
+}
+
+// Kiểm tra thông báo từ server khi trang load
+document.addEventListener('DOMContentLoaded', function() {
+    const serverMessage = document.getElementById('serverMessage');
+    const errorMessage = serverMessage.getAttribute('data-error');
+    const successMessage = serverMessage.getAttribute('data-success');
+    
+    if (errorMessage) {
+        showError(errorMessage);
+    }
+    
+    if (successMessage) {
+        showSuccess(successMessage);
+    }
+});
+
+</script>   
+</body>
+
+</html>

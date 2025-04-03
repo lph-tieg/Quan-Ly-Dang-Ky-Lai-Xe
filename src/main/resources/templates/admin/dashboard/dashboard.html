@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.9.1/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="/css/menuAdmin.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            height: 100vh;
+        }
+        
+        .dashboard {
+            display: flex;
+            width: 100%;
+            height:100vh;
+            overflow:hidden;
+        }
+        
+        .main-content-admin {
+            flex: 1;
+            margin-left: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .content-wrapper {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+
+        .dashboard-card {
+            border-radius: 10px;
+            padding: 20px;
+            margin: 10px;
+            color: white;
+        }
+
+        .bg-purple {
+            background-color: #6f42c1;
+        }
+
+        .bg-red {
+            background-color: #dc3545;
+        }
+
+        .bg-green {
+            background-color: #28a745;
+        }
+
+        .bg-blue {
+            background-color: #007bff;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            height: 400px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .btn-danger {
+    transition: all 0.3s;
+}
+
+.btn-danger:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.fa-trash-alt {
+    margin-right: 5px;
+}
+
+    </style>
+    <title>Admin</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body>
+    <section class="dashboard">
+        <div th:replace="format/menuAdmin :: menu"></div>
+
+        <section class="main-content-admin">
+            <div th:replace="format/headerAdmin :: headerAdmin"></div>
+            <div class="content-wrapper">
+                <div class="container mt-5">
+                    <div class="row mb-4">
+						    <div class="col-12">
+						        <div class="card datetime-card">
+						            <div class="card-body text-center">
+						                <h3 class="card-title" id="currentDateTime"></h3>
+						            </div>
+						        </div>
+						    </div>
+						</div>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="dashboard-card bg-purple d-flex align-items-center justify-content-between"
+                                style="padding: 20px;">
+                                <div class="box1">
+                                    <h3 style="margin-bottom: 25px;">Học Viên</h3>
+                                    <i class="fa-solid fa-user-graduate" style="font-size: 30px; margin-left: 30px;"></i>
+                                </div>
+                                <h2 th:text="${totalHocVien}" style="margin-right: 15px; font-size: 65px; margin-top: 27px;">20</h2>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="dashboard-card bg-red d-flex align-items-center justify-content-between"
+                                style="padding: 20px;">
+                                <div class="box1">
+                                    <h3 style="margin-bottom: 25px;">Giảng Viên</h3>
+                                    
+                                    <i class="fa-solid fa-chalkboard-teacher" style="font-size: 30px; margin-left: 30px;"></i>
+                                </div>
+                                <h2 th:text="${totalGiangVien}" style="margin-right: 15px; font-size: 65px; margin-top: 27px;">20</h2>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="dashboard-card bg-green d-flex align-items-center justify-content-between"
+                                style="padding: 20px;">
+                                <div class="box1">
+                                    <h3 style="margin-bottom: 25px;">Lớp Học</h3>
+                                   
+                                    <i class="fa-solid fa-book-open" style="font-size: 30px; margin-left: 30px;"></i>
+                                </div>
+                                <h2 th:text="${totalLopHoc}" style="margin-right: 15px; font-size: 65px; margin-top: 27px;">20</h2>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="dashboard-card bg-blue d-flex align-items-center justify-content-between"
+                                style="padding: 20px;">
+                                <div class="box1">
+                                    <h3 style="margin-bottom: 25px;">Xe Tập Lái</h3>
+                                    
+                                    <i class="fa-solid fa-car-side" style="font-size: 30px; margin-left: 30px;"></i>
+                                </div>
+                                <h2 th:text="${totalXe}" style="margin-right: 15px; font-size: 65px; margin-top: 27px;">20</h2>
+                            </div>
+                        </div>
+                    
+                    </div>
+                    
+
+
+                    <!-- Chart row -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="chart-container">
+                                <h4 class="text-center mb-4">Thống Kê Học Viên Theo Hạng</h4>
+                                <canvas id="studentChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="chart-container">
+                                <h4 class="text-center mb-4">Thống Kê Giảng Viên Theo Hạng</h4>
+                                <canvas id="teacherChart"></canvas>
+                            </div>
+                        </div>
+                     
+                    </div>
+                     <div class="row">
+                     
+                        <div class="col-md-6">
+                            <div class="chart-container">
+                                <h4 class="text-center mb-4">Thống Kê Xe Theo Hạng</h4>
+                                <canvas id="carChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="chart-container">
+                                <h4 class="text-center mb-4">Thống Kê Lớp Học Theo Hạng</h4>
+                                <canvas id="classChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-5">
+                      <div class="d-flex justify-content-between align-items-center mb-3">
+					        <h4 class="mb-0 text-center">Lịch sử hoạt động</h4>
+					        <button class="btn btn-danger" onclick="confirmDeleteAll()">
+					            <i class="fas fa-trash-alt"></i> Xóa tất cả
+					        </button>
+					    </div>
+						  <div style="max-height: 390px; overflow-y: auto;">
+						  	<table class="table table-striped mt-2">
+					   
+					        <thead>
+					            <tr>
+					                <th scope="col">Thời gian</th>
+					                <th scope="col">Người thực hiện</th>
+					                <th scope="col">Hoạt động</th>
+					                <th scope="col">Đối tượng</th>
+					                <th scope="col">Nội dung</th>
+					              
+					            </tr>
+					        </thead>
+					        <tbody>
+					            <tr th:each="lichSu: ${lichSu}">
+					                <td th:text="${#temporals.format(lichSu.thoiGian, 'dd/MM/yyyy HH:mm:ss')}"></td>
+					                <td th:text="${lichSu.nguoiThucHien}"></td>
+					                <td>
+					                    <span th:class="${'badge ' + 
+					                        (lichSu.loaiHoatDong == 'Thêm' ? 'bg-success' : 
+					                        (lichSu.loaiHoatDong == 'Cập Nhật' ? 'bg-warning' : 
+					                        (lichSu.loaiHoatDong == 'Xoá' ? 'bg-danger' : 'bg-info')))}"
+					                        th:text="${lichSu.loaiHoatDong}">
+					                    </span>
+					                </td>
+					                <td th:text="${lichSu.doiTuong}"></td>
+					                <td>
+					                    <span th:if="${lichSu.doiTuong == 'Giảng Viên' && lichSu.loaiHoatDong == 'SUA'}" 
+					                          th:utext="${#strings.replace(lichSu.noiDung, ': ', '&lt;br&gt;Thay đổi: ')}">
+					                    </span>
+					                    <span th:unless="${lichSu.doiTuong == 'Giảng Viên' && lichSu.loaiHoatDong == 'SUA'}" 
+					                          th:text="${lichSu.noiDung}">
+					                    </span>
+					                </td>
+					            </tr>
+					        </tbody>
+					    </table>
+						  </div>
+					    
+					</div>
+                </div>
+            </div>
+        </div>
+    </section>
+</section>
+        
+</body>
+<script>
+    // Tự động ẩn thông báo sau 3 giây
+    document.addEventListener('DOMContentLoaded', function () {
+        const successAlert = document.getElementById('success-alert');
+        const errorAlert = document.getElementById('error-alert');
+
+        if (successAlert) {
+            setTimeout(() => {
+                successAlert.style.transition = 'opacity 0.5s ease';
+                successAlert.style.opacity = '0';
+                setTimeout(() => successAlert.style.display = 'none', 500); // Ẩn hoàn toàn
+            }, 3000);
+        }
+
+        if (errorAlert) {
+            setTimeout(() => {
+                errorAlert.style.transition = 'opacity 0.5s ease';
+                errorAlert.style.opacity = '0';
+                setTimeout(() => errorAlert.style.display = 'none', 500); // Ẩn hoàn toàn
+            }, 3000);
+        }
+    });
+</script>
+
+<script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+        const success = /*[[${success}]]*/ null;
+        
+        if (success) {
+            Swal.fire({
+                title: 'Thành công!',
+                text: success,
+                icon: 'success',
+                confirmButtonColor: '#198754',
+                timer: 1500,
+                showConfirmButton: false,
+                position: 'top-end',
+                toast: true
+            });
+        }
+    });
+</script>
+
+<script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+        const labels = /*[[${hangLabels}]]*/ [];
+        const studentData = /*[[${hangData}]]*/ [];
+        const teacherData = /*[[${giangVienData}]]*/ [];
+        const classData = /*[[${lopHocData}]]*/ [];
+        const carData = /*[[${xeData}]]*/ [];
+        
+        // Function to update date and time
+       function updateDateTime() {
+    const now = new Date();
+    const formatter = new Intl.DateTimeFormat('vi-VN', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        weekday: 'long',
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    });
+    
+    let dateStr = formatter.format(now);
+    // Loại bỏ chữ "lúc" và format lại chuỗi ngày giờ
+    dateStr = dateStr.replace('lúc', '').trim();
+    document.getElementById('currentDateTime').textContent = dateStr;
+}
+        
+        // Update immediately and then every second
+        updateDateTime();
+        setInterval(updateDateTime, 1000);
+        
+        // Tạo mảng màu động dựa trên số lượng hạng
+        const generateColors = (count) => {
+            const baseColors = [
+                { bg: 'rgba(220, 53, 69, 0.8)', border: 'rgb(220, 53, 69)' },    // Đỏ - A1
+                { bg: 'rgba(40, 167, 69, 0.8)', border: 'rgb(40, 167, 69)' },    // Xanh lá - A2
+                { bg: 'rgba(0, 123, 255, 0.8)', border: 'rgb(0, 123, 255)' },    // Xanh dương - B1
+                { bg: 'rgba(255, 193, 7, 0.8)', border: 'rgb(255, 193, 7)' },    // Vàng - B2
+                { bg: 'rgba(111, 66, 193, 0.8)', border: 'rgb(111, 66, 193)' },  // Tím - C
+                { bg: 'rgba(23, 162, 184, 0.8)', border: 'rgb(23, 162, 184)' },  // Cyan - D
+                { bg: 'rgba(102, 16, 242, 0.8)', border: 'rgb(102, 16, 242)' },  // Tím đậm - E
+                { bg: 'rgba(253, 126, 20, 0.8)', border: 'rgb(253, 126, 20)' },  // Cam - F
+            ];
+            
+            const backgroundColors = [];
+            const borderColors = [];
+            
+            for (let i = 0; i < count; i++) {
+                const colorIndex = i % baseColors.length;
+                backgroundColors.push(baseColors[colorIndex].bg);
+                borderColors.push(baseColors[colorIndex].border);
+            }
+            
+            return { backgroundColors, borderColors };
+        };
+        
+        const colors = generateColors(labels.length);
+        
+        // Cấu hình chung cho cả hai biểu đồ
+        const commonOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                title: {
+                    font: {
+                        size: 18,
+                        weight: 'bold'
+                    },
+                    padding: {top: 10, bottom: 30}
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `Số lượng: ${context.parsed.y}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1,
+                        font: {
+                            size: 12
+                        }
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)',
+                        drawBorder: false
+                    },
+                    title: {
+                        display: true,
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        padding: {top: 10, bottom: 10}
+                    }
+                },
+                x: {
+                    ticks: {
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        }
+                        
+                    },
+                    grid: {
+                        display: false
+                    },
+                    title: {
+                        display: true,
+                        text: 'Hạng bằng lái',
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        padding: {top: 10, bottom: 10}
+                    }
+                }
+            },
+            layout: {
+                padding: {
+                    top: 20,
+                    right: 20,
+                    bottom: 20,
+                    left: 20
+                }
+            },
+            animation: {
+                duration: 1000,
+                easing: 'easeInOutQuart'
+            }
+        };
+
+        // Khởi tạo biểu đồ học viên
+        new Chart(document.getElementById('studentChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Số lượng học viên',
+                    data: studentData,
+                    backgroundColor: colors.backgroundColors,
+                    borderColor: colors.borderColors,
+                    borderWidth: 2,
+                    maxBarThickness: 60,
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                ...commonOptions,
+                plugins: {
+                    ...commonOptions.plugins,
+                    title: {
+                        ...commonOptions.plugins.title,
+                        display: false
+                    }
+                },
+                scales: {
+                    ...commonOptions.scales,
+                    y: {
+                        ...commonOptions.scales.y,
+                        title: {
+                            ...commonOptions.scales.y.title,
+                            text: 'Số lượng học viên'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Khởi tạo biểu đồ giảng viên
+        new Chart(document.getElementById('teacherChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Số lượng giảng viên',
+                    data: teacherData,
+                    backgroundColor: colors.backgroundColors,
+                    borderColor: colors.borderColors,
+                    borderWidth: 2,
+                    maxBarThickness: 60,
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                ...commonOptions,
+                plugins: {
+                    ...commonOptions.plugins,
+                    title: {
+                        ...commonOptions.plugins.title,
+                        display: false
+                    }
+                },
+                scales: {
+                    ...commonOptions.scales,
+                    y: {
+                        ...commonOptions.scales.y,
+                        title: {
+                            ...commonOptions.scales.y.title,
+                            text: 'Số lượng giảng viên'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Khởi tạo biểu đồ lớp học
+        new Chart(document.getElementById('classChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Số lượng lớp học',
+                    data: classData,
+                    backgroundColor: colors.backgroundColors,
+                    borderColor: colors.borderColors,
+                    borderWidth: 2,
+                    maxBarThickness: 60,
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                ...commonOptions,
+                plugins: {
+                    ...commonOptions.plugins,
+                    title: {
+                        ...commonOptions.plugins.title,
+                        display: false
+                    }
+                },
+                scales: {
+                    ...commonOptions.scales,
+                    y: {
+                        ...commonOptions.scales.y,
+                        title: {
+                            ...commonOptions.scales.y.title,
+                            text: 'Số lượng lớp học'
+                        }
+                    }
+                }
+            }
+        });
+           // Khởi tạo biểu đồ xe
+        new Chart(document.getElementById('carChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Số lượng xe',
+                    data: carData,
+                    backgroundColor: colors.backgroundColors,
+                    borderColor: colors.borderColors,
+                    borderWidth: 2,
+                    maxBarThickness: 60,
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                ...commonOptions,
+                plugins: {
+                    ...commonOptions.plugins,
+                    title: {
+                        ...commonOptions.plugins.title,
+                        display: false
+                    }
+                },
+                scales: {
+                    ...commonOptions.scales,
+                    y: {
+                        ...commonOptions.scales.y,
+                        title: {
+                            ...commonOptions.scales.y.title,
+                            text: 'Số lượng xe'
+                        }
+                    }
+                }
+            }
+        });
+    });
+    
+    function confirmDeleteAll() {
+    Swal.fire({
+        title: 'Xác nhận xóa',
+        text: "Bạn có chắc chắn muốn xóa tất cả lịch sử hoạt động?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Xóa tất cả',
+        cancelButtonText: 'Hủy'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Gọi API xóa tất cả
+            fetch('/admin/lich_su/delete-all', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    // Thêm CSRF token nếu cần
+                    // 'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]').content
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    Swal.fire({
+                        title: 'Đã xóa!',
+                        text: 'Tất cả lịch sử hoạt động đã được xóa.',
+                        icon: 'success',
+                        confirmButtonColor: '#198754'
+                    }).then(() => {
+                        // Reload trang sau khi xóa
+                        window.location.reload();
+                    });
+                } else {
+                    throw new Error('Có lỗi xảy ra khi xóa');
+                }
+            })
+            .catch(error => {
+                Swal.fire({
+                    title: 'Lỗi!',
+                    text: 'Không thể xóa lịch sử hoạt động.',
+                    icon: 'error',
+                    confirmButtonColor: '#dc3545'
+                });
+            });
+        }
+    });
+}
+</script>
+
+</html>

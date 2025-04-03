@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.9.1/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="/css/menuAdmin.css">
+    <title>Document</title>
+</head>
+
+<body>
+    <section class="dashboard" style="display:flex">
+        <div th:replace="format/menuAdmin :: menu" style="z-index: 1000"></div>
+        <section class="main-content-admin">
+            <div th:replace="format/headerAdmin :: headerAdmin"></div>
+	            <div th:if="${message}" class="alert alert-success" role="alert">
+				    <span th:text="${message}"></span>
+				</div>
+				<div th:if="${error}" class="alert alert-danger" role="alert">
+				    <span th:text="${error}"></span>
+				</div>
+            
+      <section class="content-hoc-vien mt-3">
+    <div class="container mt-2">
+        <h1 class="text-center" th:text="${isEdit} ? 'Cập Nhật Thông Tin Lớp Học' : 'Thêm Lớp Mới'"></h1>
+        <!-- Modal Thông Báo -->
+		<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+		  <div class="modal-dialog">
+		    <div class="modal-content">
+		      <div class="modal-header">
+		        <h5 class="modal-title" id="successModalLabel">Thông Báo</h5>
+		        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+		      </div>
+		      <div class="modal-body">
+		        <p th:text="${success}"></p>
+		      </div>
+		      <div class="modal-footer">
+		        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+		      </div>
+		    </div>
+		  </div>
+		</div>
+		        
+		<form th:action="@{/admin/lop_hoc/cap_nhat}" method="post" th:object="${lopHoc}">
+		    <input type="hidden" th:field="*{lopHocID}">
+		
+		    <div class="form-group">
+		        <label for="tenLop">Tên Lớp:</label>
+		        <input type="text" class="form-control" id="tenLop" th:field="*{tenLop}" required maxlength="50" />
+		    </div>
+		
+		    <div class="form-group mt-3">
+		        <label for="lichHoc">Lịch Học:</label>
+		        <input type="text" class="form-control" id="lichHoc" th:field="*{lichHoc}" required maxlength="100"
+		            onchange="loadGiangVien()" />
+		    </div>
+		
+		    <div class="form-group mt-3">
+		        <label for="buoiHoc">Buổi Học:</label>
+		        <select class="form-control" id="buoiHoc" th:field="*{buoiHoc}" required onchange="loadGiangVien()">
+		            <option value="" disabled selected>Chọn Buổi Học</option>
+		            <option value="Sáng">Sáng</option>
+		            <option value="Chiều">Chiều</option>
+		            <option value="Tối">Tối</option>
+		        </select>
+		    </div>
+		
+		    <div class="form-group mt-3">
+		        <label for="hangSelect">Chọn Hạng:</label>
+		        <select class="form-control" id="hangSelect" name="hangID" onchange="loadGiangVien()">
+		            <option value="" disabled selected>-- Chọn hạng --</option>
+		            <option th:each="hang : ${listHang}" 
+		                    th:value="${hang.hangID}" 
+		                    th:text="${hang.tenHang}" 
+		                    th:selected="${lopHoc.hang != null and lopHoc.hang.hangID == hang.hangID}">
+		            </option>
+		        </select>
+		    </div>
+		    
+		    <div class="form-group mt-3" th:if="${isEdit}">
+		        <label>Giảng Viên Hiện Tại:</label>
+		        <ul class="list-group list-giang-vien" style="max-height: 150px; overflow-y:auto">
+				    <li class="list-group-item d-flex justify-content-between align-items-center"
+				        th:each="giangVien : ${lopHoc.listGiangVien}" 
+				        th:data-id="${giangVien.giangVienID}">
+				        <span th:text="${giangVien.hoTenGV + ' - Hạng ' + (giangVien.hang != null ? giangVien.hang.tenHang : '')}"></span>
+				        <button type="button" class="btn btn-danger btn-sm btn-remove-giang-vien">
+				            Xóa
+				        </button>
+				    </li>
+				</ul>
+
+		    </div>
+		    
+			<div id="selectedGiangVien">
+			    <input th:each="giangVien : ${lopHoc.listGiangVien}" 
+			           type="hidden" 
+			           name="giangVienID" 
+			           th:value="${giangVien.giangVienID}" />
+			</div>
+
+       
+		    <div class="form-group mt-3">
+		        <label for="giangVienSelect">Chọn Giảng Viên:</label>
+		        <select class="form-control" id="giangVienSelect" name="giangVienID" multiple style="max-height: 150px; overflow-y:auto">
+		            <option th:each="giangVien : ${listGiangVien}" 
+		                    th:value="${giangVien.giangVienID}" 
+		                    th:text="${giangVien.hoTenGV + (giangVien.hang != null ? ' - ' + giangVien.hang.tenHang : '')}"
+		                    th:selected="${lopHoc.listGiangVien != null and lopHoc.listGiangVien.contains(giangVien)}">
+		            </option>
+		        </select>
+		    </div>
+		
+		    <div class="btn-update-lop-hoc text-center mt-4">
+		        <button type="submit" class="btn btn-primary" th:text="${isEdit ? 'Cập Nhật' : 'Thêm Mới'}"></button>
+		        <a th:href="@{/admin/lop_hoc}" class="btn btn-secondary">Quay lại danh sách</a>
+		    </div>
+		</form>
+
+		    </div>
+		</section>
+      
+    </section>
+
+
+<script>
+    function loadGiangVien() {
+    var lichHoc = document.getElementById("lichHoc").value;
+    var buoiHoc = document.getElementById("buoiHoc").value;
+    var hangSelect = document.getElementById("hangSelect");
+    var hang = hangSelect.options[hangSelect.selectedIndex].text; // Lấy text thay vì value
+
+    console.log("Filter params:", {
+        lichHoc: lichHoc,
+        buoiHoc: buoiHoc,
+        hang: hang
+    });
+
+    if (lichHoc && buoiHoc && hang) {
+        fetch(`/admin/lop_hoc/filter?lichHoc=${encodeURIComponent(lichHoc)}&buoiHoc=${encodeURIComponent(buoiHoc)}&hang=${encodeURIComponent(hang)}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log("Received data:", data);
+                var select = document.getElementById("giangVienSelect");
+                select.innerHTML = "";
+
+                if (data && data.length > 0) {
+                    data.forEach(giangVien => {
+                        var option = document.createElement("option");
+                        option.value = giangVien.giangVienID;
+                        option.textContent = giangVien.hoTenGV + (giangVien.hang != null ? ' - ' + giangVien.hang.tenHang : '');
+                        select.appendChild(option);
+                    });
+                } else {
+                    var option = document.createElement("option");
+                    option.value = "";
+                    option.textContent = "Không tìm thấy giảng viên phù hợp";
+                    option.disabled = true;
+                    select.appendChild(option);
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                var select = document.getElementById("giangVienSelect");
+                select.innerHTML = "";
+                var option = document.createElement("option");
+                option.value = "";
+                option.textContent = "Lỗi khi tải danh sách giảng viên";
+                option.disabled = true;
+                select.appendChild(option);
+            });
+    }
+}
+
+    document.addEventListener("DOMContentLoaded", function() {
+        document.getElementById("lichHoc").addEventListener("change", loadGiangVien);
+        document.getElementById("buoiHoc").addEventListener("change", loadGiangVien);
+        document.getElementById("hangSelect").addEventListener("change", loadGiangVien);
+    });
+    
+	document.addEventListener("click", function (event) {
+	    if (event.target.classList.contains("btn-remove-giang-vien")) {
+	        let listItem = event.target.closest("li");
+	        listItem.remove();
+	        updateGiangVienList();
+	    }
+	});
+
+
+    function updateGiangVienList() {
+    let selectedIDs = [];
+    document.querySelectorAll(".list-group-item").forEach(item => {
+        selectedIDs.push(item.getAttribute("data-id"));
+    });
+
+    // Xóa input ẩn cũ
+    let container = document.getElementById("selectedGiangVien");
+    container.innerHTML = "";
+
+    // Tạo input hidden mới cho từng ID
+    selectedIDs.forEach(id => {
+        let hiddenInput = document.createElement("input");
+        hiddenInput.type = "hidden";
+        hiddenInput.name = "giangVienID";  // Để gửi từng giá trị riêng biệt
+        hiddenInput.value = id;
+        container.appendChild(hiddenInput);
+    });
+}
+    
+</script>
+
+
+
+
+</body>
+
+</html>

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.9.1/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="/css/menuAdmin.css">
+    <title>Document</title>
+</head>
+
+<body>
+    <section class="dashboard" style="display:flex">
+        <div th:replace="format/menuAdmin :: menu" style="z-index: 1000"></div>
+        <section class="main-content-admin">
+            <div th:replace="format/headerAdmin :: headerAdmin"></div>
+	        
+         
+            <section class="content-hoc-vien mt-3">
+                <div class="container mt-2">
+                    <h1 class="text-center" th:text="${isEdit} ? 'Cập Nhật Thông Tin Giảng Viên' : 'Thêm Mới Giảng Viên'"></h1>
+                    <form th:action="${isEdit} ? @{/admin/giang_vien/cap_nhat} : @{/admin/giang_vien/add}" method="post" th:object="${giangVien}">
+                        <input type="hidden" th:field="*{giangVienID}">
+                        <div class="form-group">
+                            <label for="hoTen">Họ Tên:</label>
+                            <input type="text" class="form-control" id="hoTen" th:field="*{hoTenGV}" required maxlength="50" />
+                        </div>
+                        <div class="form-group mt-3">
+                            <label for="sdt">Số Điện Thoại:</label>
+                            <input type="text" class="form-control" id="sdt" th:field="*{sdtGV}" required maxlength="11" />
+                        </div>
+                        <div class="form-group mt-3">
+                            <label for="email">Email:</label>
+                            <input type="email" class="form-control" id="email" th:field="*{emailGV}" required maxlength="30" />
+                        </div>
+                        <div class="form-group mt-3">
+                            <label for="lichDay">Lịch Dạy:</label>
+                            <input type="text" class="form-control" id="lichDay" th:field="*{lichDay}" required maxlength="100" />
+                        </div>
+                        <div class="form-group mt-3">
+                            <label for="buoiDay">Buổi Dạy:</label>
+                            <select class="form-control" id="buoiDay" th:field="*{buoiDay}" required>
+                                <option value="" disabled selected>Chọn Buổi Dạy</option>
+                                <option value="Sáng" th:selected="${giangVien.buoiDay == 'Sáng'}">Sáng</option>
+                                <option value="Chiều" th:selected="${giangVien.buoiDay == 'Chiều'}">Chiều</option>
+                                <option value="Tối" th:selected="${giangVien.buoiDay == 'Tối'}">Tối</option>
+                            </select>
+                        </div>
+                       <div class="form-group mt-3">
+						    <label for="hangSelect">Chọn Hạng:</label>
+						    <select name="hangID" id="hangSelect" class="form-control" th:field="*{hang}" required>
+						        <option value="">-- Chọn Hạng --</option>
+						        <option th:each="hang : ${listHang}"
+						                th:value="${hang.hangID}"
+						                th:text="${hang.tenHang}"
+						                th:selected="${giangVien.hang != null and giangVien.hang.hangID == hang.hangID}">
+						        </option>
+						    </select>
+						</div>
+                     
+                        <div class="btn-update-hocVien text-center mt-4">
+                            <button type="submit" class="btn btn-primary" th:text="${isEdit ? 'Cập Nhật' : 'Thêm Mới'}"></button>
+                            <a th:href="@{/admin/giang_vien}" class="btn btn-secondary">Quay lại danh sách</a>
+                        </div>
+                    </form>
+                </div>
+            </section>
+        </section>
+    </section>
+
+
+<div th:replace="format/layout :: scripts"></div>
+
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            const message = /*[[${message}]]*/ null;
+            const error = /*[[${error}]]*/ null;
+            const success = /*[[${success}]]*/ null;
+
+            if (success) {
+                Swal.fire({
+                    title: 'Thành công!',
+                    text: success,
+                    icon: 'success',
+                    confirmButtonText: 'Đóng',
+                    confirmButtonColor: '#198754',
+                    cancelButtonColor: '#6c757d'
+                });
+            }
+            
+            if (message) {
+                Swal.fire({
+                    title: 'Thông Báo!',
+                    text: message,
+                    icon: 'info',
+                    confirmButtonText: 'Đóng',
+                    confirmButtonColor: '#198754',
+                    cancelButtonColor: '#6c757d'
+                });
+            }
+
+            if (error) {
+                Swal.fire({
+                    title: 'Lỗi!',
+                    text: error,
+                    icon: 'error',
+                    confirmButtonText: 'Đóng',
+                    confirmButtonColor: '#dc3545',
+                    cancelButtonColor: '#6c757d'
+                });
+            }
+        });
+        
+         function filterLopHoc() {
+        var lichDay = document.getElementById("lichDay").value;
+        var buoiDay = document.getElementById("buoiDay").value;
+        var dayHang = document.getElementById("dayHang").value;
+
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                document.getElementById("dayLop").innerHTML = this.responseText;
+            }
+        };
+        xhttp.open("POST", "/admin/giang_vien/filter", true);
+        xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        xhttp.send("lichDay=" + lichDay + "&buoiDay=" + buoiDay + "&dayHang=" + dayHang);
+    }
+
+    document.getElementById('lichDay').addEventListener('change', filterLopHoc);
+    document.getElementById('buoiDay').addEventListener('change', filterLopHoc);
+    document.getElementById('dayHang').addEventListener('change', filterLopHoc);
+    </script>
+
+
+</body>
+
+</html>

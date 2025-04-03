@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <link rel="stylesheet" href="/css/headerUserPage.css">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.9.1/font/bootstrap-icons.min.css">
+    <title>Dịch Vụ</title>
+    <style>
+    .content-service {
+    margin-top: 25px;
+}
+
+.img-container {
+    display: flex; 
+    justify-content: center; 
+    margin-top: 20px; 
+}
+
+.content-service img {
+    max-width: 100%; 
+    height: auto;
+}
+    
+     </style>
+</head>
+
+<body>
+
+	<div th:replace="format/header :: header"></div>
+
+    <div class="service">
+        <div class="title-service text-center" style=" background: rgb(239, 237, 237); padding: 10px ; height: 145px; ">
+            <p class="fw-bold" style="padding-top: 15px; font-size: 30px;">Thuê xe tập lái</p>
+            <p style="font-size: 20px;">Thuê xe tập lái</p>
+        </div>
+
+        <div class="content-service container" style="margin-top: 25px;">
+            <p>Khóa đào tạo bổ túc tay lái phù hợp cho những ai:</p>
+            <p><i class="bi bi-circle-fill" style="font-size: 10px;"></i> Các bạn đang học lái xe nhưng chưa tự tin để thi và cần bổ túc tay lái để đạt hiệu quả cao khi thi</p>
+            <p><i class="bi bi-circle-fill" style="font-size: 10px;"></i> Hướng dẫn 11 bài thi sa hình.</p>
+            <p><i class="bi bi-circle-fill" style="font-size: 10px;"></i> Dành cho người đã có bằng lái xe nhưng không dám lái xe nhà hoặc chưa tự tin để lái xe được an toàn.</p>
+            <p><i class="bi bi-circle-fill" style="font-size: 10px;"></i> Cho mọi người chuẩn bị có kỳ đi chơi xa: đi đường cao tốc, đi đường đèo,….</p>
+            <p><i class="bi bi-circle-fill" style="font-size: 10px;"></i> Dành cho người cần lái xe ở trong nội thành đông đúc.</p>
+            <div class="img-container">
+                <img src="/img/servicepng.jpg" alt="" style="height: 450px; width: 600px;">
+            </div>
+
+            <p class="fw-bold" style="margin-top: 20px;">Dịch vụ cho thuê xe tập lái, bổ túc tay lái tại trường <a href="" class="text-decoration-none"> dạy lái xe Thành Công</a>:</p>
+            <p><i class="bi bi-circle-fill" style="font-size: 10px;"></i> Có xe đưa đón đi học</p>
+            <p><i class="bi bi-circle-fill" style="font-size: 10px;"></i> Học phí trọn gói bao gồm tất cả chi phí: xăng, xe, lương giáo viên, bồi dưỡng giáo viên, …</p>
+            <p><i class="bi bi-circle-fill" style="font-size: 10px;"></i> Được học 1 học viên/xe/ thầy.</p>
+            <p><i class="bi bi-circle-fill" style="font-size: 10px;"></i> Giáo viên tận tình chu đáo, hỗ trợ nhiệt tình cho học viên</p>
+            <p><i class="bi bi-circle-fill" style="font-size: 10px;"></i> Không phụ thu nếu học viên học vào thứ 7, chủ nhật</p>
+
+
+            <p class="fw-bold text-center" style="font-size: 25px; margin-top: 25px;">Giá cho thuê xe tập lái</p>
+            <table class="table mt-2" style="margin-bottom:40px">
+                        <thead>
+                            <tr>
+                                <th scope="col">STT</th>
+                                <th scope="col">Tên Xe</th>
+                                <th scope="col">Loại Số Xe</th>
+                                <th scope="col">Loại Xe</th>
+                                <th scope="col">Giá Thuê</th>
+                               
+                                
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="xe, no: ${listXe}">
+                                <th scope="row" th:text="${no.index + 1}">0</th>
+                                <td th:text="*{xe.tenXe}"></td>
+                                <td th:text="*{xe.loaiSoXe}"></td>
+                                <td th:text="*{xe.loaiXe}"></td>
+                                <td th:text="*{xe.giaThue}"></td>
+
+                            </tr>
+                           
+
+                        </tbody>
+                    </table>
+        </div>
+        
+    </div>
+    
+    <div th:replace="format/footer :: footer" ></div>
+
+</body>
+
+</html>

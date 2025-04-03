@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.9.1/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="/css/menuAdmin.css">
+    
+    <title>Document</title>
+<style>
+    .no-data {
+        padding: 50px !important;
+    }
+    
+    .no-data-message {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .no-data-message i {
+        font-size: 50px;
+        color: #adb5bd;
+    }
+    
+    /* Style cho table */
+    .table thead th {
+        background-color: #f8f9fa;
+        border-bottom: 2px solid #dee2e6;
+        font-weight: 600;
+    }
+    
+    .table tbody tr:hover {
+        background-color: rgba(0,0,0,.075);
+    }
+</style>
+</head>
+
+<body>
+  
+    <section class="dashboard" style="display:flex">
+        <div th:replace="format/menuAdmin :: menu" style="z-index: 1000"></div>
+
+        <section class="main-content-admin">
+
+            <div th:replace="format/headerAdmin :: headerAdmin"></div>
+
+             <section class="content-hoc-vien mt-5">
+                <div class="hoc-vien-admin container">
+                  <div class="d-flex justify-content-between align-items-center mb-3">
+                     <form th:action="@{/admin/khoa_hoc}"  method="get">
+					            <div class="search-container">
+			                        <input type="text" name="keyword" placeholder="Tìm kiếm..." class="search-input">
+								        <button type="submit" class="search-button" >
+								            <i class="fa-solid fa-magnifying-glass"></i> Tìm kiếm
+								        </button>
+			                    </div>
+					    </form>
+                 		<button class="btn btn-success" id="add-new-teacher"><a th:href="@{/admin/khoa_hoc/them_moi}" class="text-decoration-none" style="color:white">Thêm Khóa Học</a></button>
+                </div>
+          <table class="table table-striped mt-2">
+    <thead>
+        <tr>
+            <th scope="col">STT</th>
+            <th scope="col">Tên Khóa Học</th>
+            <th scope="col">Hạng</th>
+            <th scope="col"></th>
+            <th scope="col"></th>
+        </tr>
+    </thead>
+    <tbody>
+        <!-- Kiểm tra nếu danh sách trống -->
+        <tr th:if="${#lists.isEmpty(listKhoaHoc)}">
+            <td colspan="5" class="text-center no-data">
+                <div class="no-data-message">
+                    <i class="fas fa-database"></i>
+                </div>
+            </td>
+        </tr>
+        <!-- Hiển thị dữ liệu nếu có -->
+        <tr th:unless="${#lists.isEmpty(listKhoaHoc)}" th:each="khoaHoc, no: ${listKhoaHoc}">
+            <th scope="row" th:text="${no.index +1}">0</th>
+            <td th:text="*{khoaHoc.tenKhoaHoc}"></td>
+            <td>
+                <a class="text-decoration-none" th:href="@{/admin/khoa_hoc/{id}(id=${khoaHoc.khoaHocID})}">
+                    <i class="fa-solid fa-pen-to-square" style="color: green;"></i>
+                </a>
+            </td>
+            <td>
+                <a th:href="@{/admin/delete_khoa_hoc/{id}(id=${khoaHoc.khoaHocID})}" class="text-decoration-none">
+                    <i class="fa-solid fa-trash-can" style="color: red;"></i>
+                </a>
+            </td>
+        </tr>
+    </tbody>
+</table>
+					
+					 <!-- Phân trang - chỉ hiển thị khi có dữ liệu -->
+					<nav th:if="${totalPage > 0}" aria-label="Page navigation example">
+					    <ul class="pagination">
+					        <!-- Previous Page Link -->
+					        <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
+					            <a class="page-link" th:href="@{'?pageNo='+${currentPage - 1}}" aria-label="Previous">
+					                <span aria-hidden="true">&laquo;</span>
+					            </a>
+					        </li>
+					        
+					        <!-- Page Number Links -->
+					        <li class="page-item" th:each="i : ${#numbers.sequence(1, totalPage)}" 
+					            th:classappend="${currentPage == i} ? 'active'">
+					            <a class="page-link" th:href="@{'?pageNo='+${i}}" th:text="${i}"></a>
+					        </li>
+					        
+					        <!-- Next Page Link -->
+					        <li class="page-item" th:classappend="${currentPage == totalPage} ? 'disabled'">
+					            <a class="page-link" th:href="@{'?pageNo='+${currentPage + 1}}" aria-label="Next">
+					                <span aria-hidden="true">&raquo;</span>
+					            </a>
+					        </li>
+					    </ul>
+					</nav>
+                </div>
+                
+            </section>
+
+        </section>
+
+
+    </section>
+        
+</body>
+
+</html>

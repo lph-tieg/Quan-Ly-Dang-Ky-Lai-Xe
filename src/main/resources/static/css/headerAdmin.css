@@ -1,0 +1,7 @@
+.dark-mode {
+	position: relative;
+	height: 100px;
+	width: 50px;
+	background: red;
+	top: 100px;
+}

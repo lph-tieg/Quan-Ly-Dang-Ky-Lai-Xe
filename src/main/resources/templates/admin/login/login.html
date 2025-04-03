@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Page</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/loginAdmin.css">
+  
+</head>
+<body>
+  <div class="login-container">
+    <h4>Welcome Admin!</h4>
+     <div th:if="${error}" class="alert alert-danger" role="alert">
+                    <span th:text="${error}"></span>
+                </div>
+		<form th:action="@{/admin/login}" method="post">
+		    <div class="form-group mt-3">
+		        <input type="text" class="form-control" id="username" name="username" placeholder="Tài Khoản" required>
+		    </div>
+		    <div class="form-group">
+		        <input type="password" id="password" name="password" class="form-control" placeholder="Mật Khẩu" required>
+		        <span class="eye-icon" onclick="togglePassword()">👁</span>
+		    </div>
+		    <button type="submit" class="btn btn-block">Đăng nhập</button>
+		    <a th:href="@{/admin/login/so_dien_thoai}" class="d-block mt-3 text-light">Quên Mật Khẩu</a>
+		</form>
+
+  </div>
+
+  <script>
+    function togglePassword() {
+      const passwordField = document.getElementById('password');
+      const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+      passwordField.setAttribute('type', type);
+    }
+  </script>
+</body>
+</html>

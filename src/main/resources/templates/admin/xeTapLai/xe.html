@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head th:replace="format/layout :: head">
+</head>
+
+<body>
+    <section class="dashboard" style="display:flex">
+        <div th:replace="format/menuAdmin :: menu" style="z-index: 1000"></div>
+
+        <section class="main-content-admin">
+            <div th:replace="format/headerAdmin :: headerAdmin"></div>
+
+            <section class="content-xe mt-5">
+                <div class="xe-admin container">
+                    <!-- Xóa các alert cũ -->
+                    <div th:if="${message}" th:data-message="${message}" th:data-type="success" style="display: none;"></div>
+                    <div th:if="${error}" th:data-message="${error}" th:data-type="error" style="display: none;"></div>
+                    <div th:if="${success}" th:data-message="${success}" th:data-type="success" style="display: none;"></div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="d-flex gap-3">
+                            <form th:action="@{/admin/xe_tap_lai}" method="get" class="d-flex gap-2">
+                                <!-- Lọc theo hạng -->
+                             <!-- Lọc theo hạng -->
+						<!-- Lọc theo hạng -->
+								<select name="hang" class="form-select" style="width: 200px;" onchange="this.form.submit()">
+								    <option value="" th:selected="${selectedHang == null}">Tất cả hạng</option>
+								    <option th:each="hang : ${listHang}"
+								            th:value="${hang.hangID}"
+								            th:text="${hang.tenHang}"
+								            th:selected="${selectedHang != null and selectedHang == hang.hangID}">
+								    </option>
+								</select>
+								
+								<!-- Lọc theo loại số xe -->
+							<select name="loaiSoXe" class="form-select" style="width: 150px;" onchange="this.form.submit()">
+							    <option value="" th:selected="${selectedLoaiSoXe == null}">Tất cả loại số</option>
+							    <option value="Xe Số" th:selected="${selectedLoaiSoXe == 'Xe Số'}">Xe Số</option>
+							    <option value="Côn Tay" th:selected="${selectedLoaiSoXe == 'Côn Tay'}">Xe Côn Tay</option>
+							    <option value="Xe Tay Ga" th:selected="${selectedLoaiSoXe == 'Xe Tay Ga'}">Xe Tay Ga</option>
+							    <option value="Số Sàn" th:selected="${selectedLoaiSoXe == 'Số Sàn'}">Số Sàn</option>
+							    <option value="Số Tự Động" th:selected="${selectedLoaiSoXe == 'Số Tự Động'}">Số Tự Động</option>
+							</select>
+								
+						<!-- Lọc theo loại xe -->
+								<select name="loaiXe" class="form-select" style="width: 155px;" onchange="this.form.submit()">
+								    <option value="" th:selected="${selectedLoaiXe == null}">Tất cả loại xe</option>
+								    <!-- Hạng A1 -->
+								    <optgroup label="Hạng A1">
+								        <option value="Xe số - A1" th:selected="${selectedLoaiXe == 'Xe số - A1'}">Xe số - A1</option>
+								        <option value="Xe tay ga - A1" th:selected="${selectedLoaiXe == 'Xe tay ga - A1'}">Xe tay ga - A1</option>
+								        <option value="Xe côn tay - A1" th:selected="${selectedLoaiXe == 'Xe côn tay - A1'}">Xe côn tay - A1</option>
+								    </optgroup>
+								    <!-- Hạng A2 -->
+								    <optgroup label="Hạng A2">
+								        <option value="Xe tay ga - A2" th:selected="${selectedLoaiXe == 'Xe tay ga - A2'}">Xe tay ga - A2</option>
+								        <option value="Xe côn tay - A2" th:selected="${selectedLoaiXe == 'Xe côn tay - A2'}">Xe côn tay - A2</option>
+								    </optgroup>
+								    <!-- Hạng B1 -->
+								    <optgroup label="Hạng B1">
+								        <option value="Xe ô tô - B1" th:selected="${selectedLoaiXe == 'Xe ô tô - B1'}">Xe ô tô - B1</option>
+								    </optgroup>
+								    <!-- Hạng B2 -->
+								    <optgroup label="Hạng B2">
+								        <option value="Xe ô tô - B2" th:selected="${selectedLoaiXe == 'Xe ô tô - B2'}">Xe ô tô - B2</option>
+								    </optgroup>
+								    <!-- Hạng C -->
+								    <optgroup label="Hạng C">
+								        <option value="Xe ô tô tải - C" th:selected="${selectedLoaiXe == 'Xe ô tô tải - C'}">Xe ô tô tải - C</option>
+								    </optgroup>
+								    <!-- Hạng D -->
+								    <optgroup label="Hạng D">
+								        <option value="Xe ô tô 10 đến 30 người - D" th:selected="${selectedLoaiXe == 'Xe ô tô 10 đến 30 người - D'}">Xe ô tô 10 đến 30 người - D</option>
+								    </optgroup>
+								    <!-- Hạng E -->
+								    <optgroup label="Hạng E">
+								        <option value="Xe ô tô trên 30 người - E" th:selected="${selectedLoaiXe == 'Xe ô tô trên 30 người - E'}">Xe ô tô trên 30 người - E</option>
+								    </optgroup>
+								    <!-- Các hạng khác -->
+								    <optgroup label="Hạng Nâng Cao F">
+								        <option value="Lái xe hạng B2 kéo rơ-moóc" th:selected="${selectedLoaiXe == 'Lái xe hạng B2 kéo rơ-moóc'}">Lái xe hạng B2 kéo rơ-moóc</option>
+								        <option value="Lái xe hạng C kéo sơ-mỉ rơ-moóc" th:selected="${selectedLoaiXe == 'Lái xe hạng C kéo sơ-mỉ rơ-moóc'}">Lái xe hạng C kéo sơ-mỉ rơ-moóc</option>
+								        <option value="Lái xe hạng D kéo rơ-moóc" th:selected="${selectedLoaiXe == 'Lái xe hạng D kéo rơ-moóc'}">Lái xe hạng D kéo rơ-moóc</option>
+								        <option value="Lái xe hạng E kéo rơ-moóc" th:selected="${selectedLoaiXe == 'Lái xe hạng E kéo rơ-moóc'}">Lái xe hạng E kéo rơ-moóc</option>
+								    </optgroup>
+								</select>
+                            </form>
+                           <form th:action="@{/admin/xe_tap_lai}" method="get">
+						    <div class="search-container">
+						        <input type="text" name="keyword" th:value="${keyword}" placeholder="Nhập từ khóa tìm kiếm..." class="search-input">
+						        <!-- Thêm các input hidden để giữ lại các giá trị đã chọn -->
+						        <input type="hidden" name="hang" th:value="${selectedHang}">
+						        <input type="hidden" name="loaiSoXe" th:value="${selectedLoaiSoXe}">
+						        <input type="hidden" name="loaiXe" th:value="${selectedLoaiXe}">
+						        <button type="submit" class="search-button">
+						            <i class="fa-solid fa-magnifying-glass"></i> Tìm kiếm
+						        </button>
+						    </div>
+						</form>
+                        </div>
+                        <button class="btn btn-success" id="add-new-vehicle">
+                            <a th:href="@{/admin/xe_tap_lai/them_moi}" class="text-decoration-none" style="color:white">Thêm xe mới</a>
+                        </button>
+                    </div>
+
+                    <table class="table table-striped mt-2">
+                        <thead>
+                            <tr>
+                                <th scope="col">STT</th>
+                                <th scope="col">Tên Xe</th>
+                                <th scope="col">Hạng</th>
+                                <th scope="col">Loại Số Xe</th>
+                                <th scope="col">Loại Xe</th>
+                                <th scope="col">Giá Thuê</th>
+                                <th scope="col">Số Lượng</th>
+                                <th scope="col">Số Lượng Còn</th>
+                                <th scope="col"></th>
+                                <th scope="col"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:if="${#lists.isEmpty(listXeTapLai)}">
+                                <td colspan="10" class="text-center">Không tìm thấy xe nào</td>
+                            </tr>
+                            <tr th:each="xe, no: ${listXeTapLai}">
+                                <th scope="row" th:text="${no.index + 1}">0</th>
+                                <td th:text="*{xe.tenXe}"></td>
+                                <td th:text="*{xe.hang.tenHang}"></td>
+                                <td th:text="*{xe.loaiSoXe}"></td>
+                                <td th:text="*{xe.loaiXe}"></td>
+                                <td th:text="*{xe.giaThue}"></td>
+                                <td th:text="*{xe.soLuong}"></td>
+                                <td>
+                                    <span th:if="*{xe.soLuongConLai > 0}" th:text="*{xe.soLuongConLai}"></span>
+                                    <span th:if="*{xe.soLuongConLai == 0}" class="text-danger">Đã hết xe trống</span>
+                                </td>
+                                <td>
+                                    <a th:href="@{/admin/xe_tap_lai/{id}(id=${xe.xeID})}" class="text-decoration-none">
+                                        <i class="fa-solid fa-pen-to-square" style="color: blue;"></i>
+                                    </a>
+                                </td>
+                                <td>
+                                    <button class="btn btn-danger" 
+                                            th:onclick="'confirmDelete(\'' + ${xe.xeID} + '\')'">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                  <nav th:if="${totalPage > 0}" aria-label="Page navigation example">
+    <ul class="pagination">
+        <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
+            <a class="page-link" 
+               th:href="@{'/admin/xe_tap_lai'(pageNo=${currentPage - 1}, keyword=${keyword}, hang=${selectedHang}, loaiSoXe=${selectedLoaiSoXe}, loaiXe=${selectedLoaiXe})}" 
+               aria-label="Previous">
+                <span aria-hidden="true">&laquo;</span>
+            </a>
+        </li>
+        
+        <li class="page-item" 
+            th:each="i : ${#numbers.sequence(1, totalPage)}" 
+            th:classappend="${currentPage == i} ? 'active'">
+            <a class="page-link" 
+               th:href="@{'/admin/xe_tap_lai'(pageNo=${i}, keyword=${keyword}, hang=${selectedHang}, loaiSoXe=${selectedLoaiSoXe}, loaiXe=${selectedLoaiXe})}" 
+               th:text="${i}"></a>
+        </li>
+        
+        <li class="page-item" th:classappend="${currentPage == totalPage} ? 'disabled'">
+            <a class="page-link" 
+               th:href="@{'/admin/xe_tap_lai'(pageNo=${currentPage + 1}, keyword=${keyword}, hang=${selectedHang}, loaiSoXe=${selectedLoaiSoXe}, loaiXe=${selectedLoaiXe})}" 
+               aria-label="Next">
+                <span aria-hidden="true">&raquo;</span>
+            </a>
+        </li>
+    </ul>
+</nav>
+                </div>
+            </section>
+        </section>
+    </section>
+
+ <div th:replace="format/layout :: scripts"></div>
+ 
+ <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            const message = /*[[${message}]]*/ null;
+            const error = /*[[${error}]]*/ null;
+            const success = /*[[${success}]]*/ null;
+
+            if (success) {
+                Swal.fire({
+                    title: 'Thành Công!',
+                    text:  success,
+                    icon: 'success',
+                    confirmButtonText: 'Đóng',
+                    confirmButtonColor: '#198754',
+
+                });
+            }
+            
+               if (message ) {
+                Swal.fire({
+                    title: 'Thông Báo!',
+                    text:  message,
+                    icon: 'info',
+                    confirmButtonText: 'Đóng',
+
+                    confirmButtonColor: '#198754',
+
+                });
+            }
+
+            if (error) {
+                Swal.fire({
+                    title: 'Lỗi!',
+                    text: error,
+                    icon: 'error',
+                    showCancelButton: true,
+                    confirmButtonText: 'Đồng ý',
+                    cancelButtonText: 'Huỷ',
+                    confirmButtonColor: '#dc3545',
+                    cancelButtonColor: '#6c757d'
+                });
+            }
+        });
+        
+                function confirmDelete(id) {
+            Swal.fire({
+                title: "Xác nhận xoá?",
+                text: "Bạn có chắc chắn muốn xoá xe này không?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Xoá',
+                cancelButtonText: 'Huỷ'
+            }).then((result) => {
+                if(result.isConfirmed) {
+                    window.location.href = `/admin/xe_tap_lai/delete_xe/${id}`;
+                }
+            });
+        }
+    </script>
+</body>
+</html>

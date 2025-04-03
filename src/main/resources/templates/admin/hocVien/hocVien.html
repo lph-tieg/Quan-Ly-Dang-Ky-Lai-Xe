@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="format/layout :: head">
+          <style>
+                        .filter-container {
+                            display: flex;
+                            gap: 10px;
+                            align-items: center;
+                            margin-bottom: 20px;
+                        }
+
+                        .form-select {
+                            padding: 8px;
+                            border: 1px solid #ced4da;
+                            border-radius: 4px;
+                            background-color: white;
+                        }
+
+                        .form-select:focus {
+                            border-color: #80bdff;
+                            outline: 0;
+                            box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+                        }
+
+                        /* Thêm style cho select khi hover */
+                        .form-select:hover {
+                            border-color: #80bdff;
+                            cursor: pointer;
+                        }
+                    </style>
+</head>
+
+<body>
+    <section class="dashboard" style="display:flex">
+        <div th:replace="format/menuAdmin :: menu" style="z-index: 1000"></div>
+
+        <section class="main-content-admin">
+            <div th:replace="format/headerAdmin :: headerAdmin"></div>
+
+            <section class="content-hoc-vien mt-5">
+                <div class="hoc-vien-admin container">
+                    <!-- Xóa các alert cũ -->
+                    <div th:if="${message}" th:data-message="${message}" th:data-type="success" style="display: none;"></div>
+                    <div th:if="${error}" th:data-message="${error}" th:data-type="error" style="display: none;"></div>
+                    <div th:if="${success}" th:data-message="${success}" th:data-type="success" style="display: none;"></div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="d-flex gap-3">
+                            <form th:action="@{/admin/hoc_vien}" method="get" class="d-flex gap-2">
+                                <!-- Lọc theo hạng -->
+                                <select name="hang" class="form-select" style="width: 200px;" onchange="this.form.submit()">
+                                    <option value="">Tất cả hạng</option>
+                                    <option th:each="hang : ${listHang}"
+                                            th:value="${hang.tenHang}"
+                                            th:text="${hang.tenHang}"
+                                            th:selected="${selectedHang != null and selectedHang == hang.tenHang}">
+                                    </option>
+                                </select>
+
+                                <!-- Lọc theo buổi học -->
+                                <select name="buoiHoc" class="form-select" style="width: 150px;" onchange="this.form.submit()">
+                                    <option value="">Tất cả buổi</option>
+                                    <option value="Sáng" th:selected="${selectedBuoiHoc == 'Sáng'}">Sáng</option>
+                                    <option value="Chiều" th:selected="${selectedBuoiHoc == 'Chiều'}">Chiều</option>
+                                    <option value="Tối" th:selected="${selectedBuoiHoc == 'Tối'}">Tối</option>
+                                </select>
+
+                                <!-- Lọc theo lịch học -->
+								<select name="lichHoc" class="form-select" style="width: 200px;" onchange="this.form.submit()">
+								    <option value="">Tất cả lịch học</option>
+								    <option th:each="lichHoc : ${listLichHoc}"
+								            th:value="${lichHoc}"
+								            th:text="${lichHoc}"
+								            th:selected="${selectedLichHoc != null and selectedLichHoc == lichHoc}">
+								    </option>
+								</select>
+                            </form>
+
+                            <!-- Form tìm kiếm -->
+                            <form th:action="@{/admin/hoc_vien}" method="get">
+                                <div class="search-container">
+                                    <input type="text" name="keyword" th:value="${keyword}" placeholder="Tìm kiếm..." class="search-input">
+                                    <button type="submit" class="search-button">
+                                        <i class="fa-solid fa-magnifying-glass"></i> Tìm kiếm
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+          
+
+                    <table class="table table-striped mt-2">
+                        <thead>
+                            <tr>
+                                <th scope="col">STT</th>
+                                <th scope="col">Họ và Tên</th>
+                                <th scope="col">Lớp</th>
+                                <th scope="col">Lịch Học</th>
+                                <th scope="col">Hạng Đăng Ký</th>
+                                <th scope="col">Xe Đăng Ký</th>
+                                <th scope="col">Loại Thực Hành</th>
+                                <th scope="col">Thông tin học viên</th>
+                                <th scope="col"></th>
+                                <th scope="col"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="hocVien, no: ${pageHocVien}">
+                                <th scope="row" th:text="${no.index +1}">0</th>
+                                <td th:text="*{hocVien.hoTen}"></td>
+                                <td th:text="*{hocVien.lopHoc}"></td>
+                                <td th:text="*{hocVien.buoiHoc}"></td>
+                                <td th:text="*{hocVien.hangDK}"></td>
+                                <td th:text="*{hocVien.loaiXeDK}"></td>
+                                <td th:text="*{hocVien.lichHoc}"></td>
+                                <td>
+                                    <a th:href="@{/admin/hoc_vien/chi_tiet/{id}(id=${hocVien.hocVienID})}" class="text-decoration-none">Xem Thêm</a>
+                                </td>
+                                <td>
+                                    <a th:href="@{/admin/hoc_vien/{id}(id=${hocVien.hocVienID})}" class="text-decoration-none">
+                                        <i class="fa-solid fa-pen-to-square" style="color: blue;"></i>
+                                    </a>
+                                </td>
+                                <td>
+                                    <form th:action="@{/admin/hoc_vien/delete/{id}(id=${hocVien.hocVienID})}" 
+                                          method="post" 
+                                          class="delete-form"
+                                          th:data-student-name="${hocVien.hoTen}"
+                                          style="display: inline;">
+                                        <button type="submit" class="btn btn-danger btn-sm">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <nav th:if="${totalPage > 0}" aria-label="Page navigation example">
+					    <ul class="pagination">
+					        <!-- Previous Page Link -->
+					        <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
+					            <a class="page-link" th:href="@{'?pageNo='+${currentPage - 1}}" aria-label="Previous">
+					                <span aria-hidden="true">&laquo;</span>
+					            </a>
+					        </li>
+					        
+					        <!-- Page Number Links -->
+					        <li class="page-item" th:each="i : ${#numbers.sequence(1, totalPage)}" 
+					            th:classappend="${currentPage == i} ? 'active'">
+					            <a class="page-link" th:href="@{'?pageNo='+${i}}" th:text="${i}"></a>
+					        </li>
+					        
+					        <!-- Next Page Link -->
+					        <li class="page-item" th:classappend="${currentPage == totalPage} ? 'disabled'">
+					            <a class="page-link" th:href="@{'?pageNo='+${currentPage + 1}}" aria-label="Next">
+					                <span aria-hidden="true">&raquo;</span>
+					            </a>
+					        </li>
+					    </ul>
+					</nav>
+                </div>
+            </section>
+        </section>
+    </section>
+
+    <!-- Thêm scripts fragment -->
+    <div th:replace="format/layout :: scripts"></div>
+
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            // Lấy thông báo từ session attributes
+            const message = /*[[${message}]]*/ null;
+            const error = /*[[${error}]]*/ null;
+            const success = /*[[${success}]]*/ null;
+            const updateSuccess = /*[[${updateSuccess}]]*/ null;
+            const updateError = /*[[${updateError}]]*/ null;
+
+            // Hàm hiển thị thông báo
+            function showNotification(title, message, icon, buttonColor) {
+                Swal.fire({
+                    title: title,
+                    text: message,
+                    icon: icon,
+                    confirmButtonText: 'Đóng',
+                    confirmButtonColor: buttonColor,
+                    customClass: {
+                        popup: 'animated fadeInDown'
+                    }
+                });
+            }
+
+            // Xử lý các loại thông báo
+            if (updateSuccess) {
+                showNotification('Thành công!', updateSuccess, 'success', '#198754');
+            } else if (updateError) {
+                showNotification('Lỗi!', updateError, 'error', '#dc3545');
+            } else if (success) {
+                showNotification('Thành công!', success, 'success', '#198754');
+            } else if (error) {
+                showNotification('Lỗi!', error, 'error', '#dc3545');
+            } else if (message) {
+                showNotification('Thông báo!', message, 'info', '#0d6efd');
+            }
+
+            // Xử lý xác nhận xóa học viên
+            document.querySelectorAll('.delete-form').forEach(form => {
+                form.addEventListener('submit', function(event) {
+                    event.preventDefault();
+                    const studentName = this.getAttribute('data-student-name');
+                    
+                    Swal.fire({
+                        title: 'Xác nhận xóa',
+                        html: `Bạn có chắc chắn muốn xóa học viên <strong>${studentName}</strong> không?`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#28a745',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Xóa',
+                        cancelButtonText: 'Hủy',
+                        customClass: {
+                            popup: 'animated fadeInDown'
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            this.submit();
+                        }
+                    });
+                });
+            });
+
+            // Thêm animation cho các thông báo
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes fadeInDown {
+                    from {
+                        opacity: 0;
+                        transform: translate3d(0, -20%, 0);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translate3d(0, 0, 0);
+                    }
+                }
+                .animated {
+                    animation-duration: 0.3s;
+                    animation-fill-mode: both;
+                }
+                .fadeInDown {
+                    animation-name: fadeInDown;
+                }
+            `;
+            document.head.appendChild(style);
+        });
+    </script>
+</body>
+</html>

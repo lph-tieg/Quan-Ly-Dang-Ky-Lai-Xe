@@ -1,0 +1,37 @@
+.custom-popup-class {
+    font-family: 'Arial', sans-serif;
+    border-radius: 15px;
+}
+
+.swal2-title {
+    color: #333;
+    font-size: 1.5em;
+    font-weight: 600;
+}
+
+.swal2-html-container {
+    color: #555;
+    font-size: 1.1em;
+    margin-top: 1em;
+}
+
+.swal2-confirm {
+    padding: 12px 24px !important;
+    font-size: 1.1em !important;
+    font-weight: 500 !important;
+}
+
+.swal2-cancel {
+    padding: 12px 24px !important;
+    font-size: 1.1em !important;
+    font-weight: 500 !important;
+}
+
+.swal2-popup {
+    padding: 2em;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+}
+
+.swal2-icon {
+    margin: 1.5em auto;
+} 

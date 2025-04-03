@@ -1,0 +1,111 @@
+@charset "ISO-8859-1";
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 150px;
+    position: relative;
+}
+
+.header img {
+    margin-right: 10px;
+}
+
+.header a {
+    margin-left: 10px;
+}
+
+a.nav-link.text-danger.fw-bold:hover {
+    color: blue !important;
+}
+
+.nav-item {
+    position: relative;
+}
+
+
+
+.courses-menu {
+    display: none;
+    position: absolute;
+    background-color: #fff;
+    padding: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    float: left;
+    width: fit-content; /* Thay đổi width cố định thành fit-content */
+    min-width: 250px; /* Đặt chiều rộng tối thiểu */
+    max-width: 260px; /* Đặt chiều rộng tối đa */
+}
+
+.courses-menu p {
+    margin: 0;
+    padding: 3px 5px; /* Thêm padding bên trái và phải */
+}
+
+.courses-menu a {
+    display: block;
+    padding: 3px 5px;
+    text-decoration: none;
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.courses-menu hr {
+    margin: 8px 5px; /* Điều chỉnh margin của đường kẻ */
+    opacity: 0.1;
+}
+
+/* Style cho các link trong menu */
+.courses-menu a,
+.services-menu a {
+    display: block; /* Để link chiếm full width */
+    padding: 5px 0; /* Thêm padding trên dưới cho link */
+    transition: color 0.3s ease; /* Thêm hiệu ứng hover mượt mà */
+}
+
+.courses-link:hover + .courses-menu,
+.nav-item:hover .courses-menu,
+.services-link:hover + .services-menu,
+.nav-item:hover .services-menu {
+    display: block; /* Hiển thị phần div khi hover */
+}
+
+.courses-menu a:hover,
+.services-menu a:hover {
+    color: blue !important; /* Đổi màu thành xanh khi hover */
+}
+
+.services-menu {
+    display: none;
+    position: absolute;
+    background-color: #fff;
+    padding: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    float: left;
+    width: fit-content; /* Tự động điều chỉnh theo nội dung */
+    min-width: 140px; /* Đặt chiều rộng tối thiểu */
+    max-width: 150px; /* Đặt chiều rộng tối đa */
+}
+
+/* Style chung cho cả hai menu */
+.courses-menu,
+.services-menu {
+    padding: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.services-menu p {
+    margin: 0;
+    padding: 3px 5px;
+}
+
+.services-menu a {
+    display: block;
+    padding: 3px 5px;
+    text-decoration: none;
+    font-size: 13px;
+    white-space: nowrap;
+}

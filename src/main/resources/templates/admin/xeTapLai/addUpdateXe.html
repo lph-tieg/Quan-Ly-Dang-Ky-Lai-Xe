@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.9.1/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="/css/menuAdmin.css">
+    
+    <title>Quản Lý Xe Tập Lái</title>
+</head>
+
+<body>
+  
+    <section class="dashboard" style="display:flex">
+        <div th:replace="format/menuAdmin :: menu" style="z-index: 1000"></div>
+
+        <section class="main-content-admin">
+            <div th:replace="format/headerAdmin :: headerAdmin"></div>
+
+            <section class="content-hoc-vien mt-3">
+                <div class="container mt-2">
+                    <h1 class="text-center" th:text="${isEdit} ? 'Cập Nhật Xe' : 'Thêm Xe Mới'"></h1>
+                    <form th:action="@{${isEdit ? '/admin/xe_tap_lai/cap_nhat' : '/admin/xe_tap_lai/them_moi'}}" method="post" th:object="${xeTapLai}">
+                        <input type="hidden" th:field="*{xeID}">
+                        <div class="form-group">
+                            <label for="tenXe">Tên Xe:</label>
+                            <input type="text" class="form-control" id="tenXe" th:field="*{tenXe}" required maxlength="50"/>
+                        </div>
+
+                        <div class="form-group mt-3">
+                            <label for="hang">Hạng:</label>
+                            <select class="form-control" id="hang" th:field="*{hang}" required>
+                                <option value="" disabled selected>Chọn hạng</option>
+                                <option th:each="hangItem : ${listHang}" 
+                                        th:value="${hangItem.hangID}" 
+                                        th:text="${hangItem.tenHang}"
+                                        th:selected="${xeTapLai.hang != null && xeTapLai.hang.hangID == hangItem.hangID}">
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="form-group mt-3">
+                            <label for="loaiSoXe">Loại Số Xe:</label>
+                            <select class="form-control" id="loaiSoXe" th:field="*{loaiSoXe}" required>
+                                <option value="" disabled selected>Chọn loại số xe</option>
+                                <option value="Xe Số">Xe Số</option>
+                                <option value="Côn Tay">Xe Côn Tay</option>
+                                <option value="Xe Tay Ga">Xe Tay Ga</option>
+                                <option value="Số Sàn">Số Sàn</option>
+                                <option value="Số Tự Động">Số Tự Động</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group mt-3">
+                            <label for="loaiXe">Loại Xe:</label>
+                            <select class="form-control" id="loaiXe" th:field="*{loaiXe}" required>
+                                <option value="" disabled selected>Chọn loại xe</option>
+                                <!-- Hạng A1 -->
+                                <optgroup label="Hạng A1">
+                                    <option value="Xe số - A1">Xe số - A1</option>
+                                    <option value="Xe tay ga - A1">Xe tay ga - A1</option>
+                                    <option value="Xe côn tay - A1">Xe côn tay - A1</option>
+                                </optgroup>
+                                <!-- Hạng A2 -->
+                                <optgroup label="Hạng A2">
+                                    <option value="Xe tay ga - A2">Xe tay ga - A2</option>
+                                    <option value="Xe côn tay - A2">Xe côn tay - A2</option>
+                                </optgroup>
+                                <!-- Hạng B1 -->
+                                <optgroup label="Hạng B1">
+                                    <option value="Xe ô tô - B1">Xe ô tô - B1</option>
+                                </optgroup>
+                                <!-- Hạng B2 -->
+                                <optgroup label="Hạng B2">
+                                    <option value="Xe ô tô - B2">Xe ô tô - B2</option>
+                                </optgroup>
+                                <!-- Hạng C -->
+                                <optgroup label="Hạng C">
+                                    <option value="Xe ô tô tải - C">Xe ô tô tải - C</option>
+                                </optgroup>
+                                <!-- Hạng D -->
+                                <optgroup label="Hạng D">
+                                    <option value="Xe ô tô 10 đến 30 người - D">Xe ô tô 10 đến 30 người - D</option>
+                                </optgroup>
+                                <!-- Hạng E -->
+                                <optgroup label="Hạng E">
+                                    <option value="Xe ô tô trên 30 người - E">Xe ô tô trên 30 người - E</option>
+                                </optgroup>
+                                <!-- Các hạng khác -->
+                                <optgroup label="Hạng Nâng Cao F">
+                                    <option value="Lái xe hạng B2 kéo rơ-moóc">Lái xe hạng B2 kéo rơ-moóc</option>
+                                    <option value="Lái xe hạng C kéo sơ-mỉ rơ-moóc">Lái xe hạng C kéo sơ-mỉ rơ-moóc</option>
+                                    <option value="Lái xe hạng D kéo rơ-moóc">Lái xe hạng D kéo rơ-moóc</option>
+                                    <option value="Lái xe hạng E kéo rơ-moóc">Lái xe hạng E kéo rơ-moóc</option>
+                                </optgroup>
+                            </select>
+                        </div>
+
+                        <div class="form-group mt-3">
+                            <label for="soLuong">Số Lượng:</label>
+                            <input type="number" class="form-control" id="soLuong" th:field="*{soLuong}" required min="0"/>
+                        </div>
+
+
+                        <div class="form-group mt-3">
+                            <label for="giaThue">Giá Thuê:</label>
+                            <input type="number" class="form-control" id="giaThue" th:field="*{giaThue}" required min="0" step="1000"/>
+                        </div>
+                        
+                        <div class="btn-update-hocVien text-center mt-4">
+                            <button type="submit" class="btn btn-primary" th:text="${isEdit ? 'Cập Nhật' : 'Thêm Mới'}"></button>
+                            <a th:href="@{/admin/xe_tap_lai}" class="btn btn-secondary">Quay lại danh sách</a>
+                        </div>
+                    </form>
+                </div>
+            </section>
+        </section>
+    </section>
+
+    <script>
+        // Chỉ giữ lại phần validate số lượng
+        document.addEventListener('DOMContentLoaded', function() {
+            const soLuongInput = document.getElementById('soLuong');
+            const soLuongConLaiInput = document.getElementById('soLuongConLai');
+            
+            if (soLuongInput && soLuongConLaiInput) {
+                soLuongInput.addEventListener('change', function() {
+                    const soLuong = parseInt(this.value);
+                    soLuongConLaiInput.max = soLuong;
+                    const soLuongConLai = parseInt(soLuongConLaiInput.value);
+                    if (soLuongConLai > soLuong) {
+                        soLuongConLaiInput.value = soLuong;
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head th:replace="format/layout :: head">
+</head>
+
+<body>
+    <section class="dashboard" style="display:flex">
+        <div th:replace="format/menuAdmin :: menu" style="z-index: 1000"></div>
+
+        <section class="main-content-admin">
+            <div th:replace="format/headerAdmin :: headerAdmin"></div>
+
+            <section class="content-hoc-vien mt-5">
+                <div class="hoc-vien-admin container">
+                    <!-- Xóa các alert cũ -->
+                    <div th:if="${message}" th:data-message="${message}" th:data-type="success" style="display: none;"></div>
+                    <div th:if="${error}" th:data-message="${error}" th:data-type="error" style="display: none;"></div>
+                    <div th:if="${success}" th:data-message="${success}" th:data-type="success" style="display: none;"></div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="d-flex gap-3">
+                            <form th:action="@{/admin/giang_vien}" method="get" class="d-flex gap-2">
+                                <!-- Lọc theo hạng -->
+                                <select name="hang" class="form-select" style="width: 200px;" onchange="this.form.submit()">
+                                    <option value="">Tất cả hạng</option>
+                                    <option th:each="hang : ${listHang}"
+                                            th:value="${hang.hangID}"
+                                            th:text="${hang.tenHang}"
+                                            th:selected="${selectedHang != null and selectedHang == hang.hangID}">
+                                    </option>
+                                </select>
+                                <!-- Lọc theo buổi dạy -->
+                                <select name="buoiDay" class="form-select" style="width: 150px;" onchange="this.form.submit()">
+                                    <option value="">Tất cả buổi</option>
+                                    <option value="Sáng" th:selected="${selectedBuoiDay == 'Sáng'}">Sáng</option>
+                                    <option value="Chiều" th:selected="${selectedBuoiDay == 'Chiều'}">Chiều</option>
+                                    <option value="Tối" th:selected="${selectedBuoiDay == 'Tối'}">Tối</option>
+                                </select>
+                                <!-- Lọc theo lịch dạy -->
+                                <select name="lichDay" class="form-select" style="width: 155px;" onchange="this.form.submit()">
+                                    <option value="">Tất cả lịch dạy</option>
+                                    <option th:each="lichDay : ${listLichDay}"
+                                            th:value="${lichDay}"
+                                            th:text="${lichDay}"
+                                            th:selected="${selectedLichDay != null and selectedLichDay == lichDay}">
+                                    </option>
+                                </select>
+                                <!-- Lọc theo lớp học -->
+                                <select name="lopHoc" class="form-select" style="width: 200px;" onchange="this.form.submit()">
+                                    <option value="">Tất cả lớp học</option>
+                                    <option th:each="lop : ${listLopHoc}"
+                                            th:value="${lop.lopHocID}"
+                                            th:text="${lop.tenLop}"
+                                            th:selected="${selectedLopHoc != null and selectedLopHoc == lop.lopHocID}">
+                                    </option>
+                                </select>
+                            </form>
+                            <form th:action="@{/admin/giang_vien}" method="get">
+                                <div class="search-container">
+                                    <input type="text" name="keyword" th:value="${keyword}" placeholder="Nhập từ khóa tìm kiếm..." class="search-input">
+                                    <button type="submit" class="search-button">
+                                        <i class="fa-solid fa-magnifying-glass"></i> Tìm kiếm
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                        <button class="btn btn-success" id="add-new-teacher">
+                            <a th:href="@{/admin/giang_vien/them_moi}" class="text-decoration-none" style="color:white">Thêm giảng viên mới</a>
+                        </button>
+                    </div>
+
+                    <table class="table table-striped mt-2">
+                        <thead>
+                            <tr>
+                                <th scope="col">STT</th>
+                                <th scope="col">Họ và Tên</th>
+                                <th scope="col">SĐT</th>
+                                <th scope="col">Email</th>
+                                <th scope="col">Dạy Hạng</th>
+                                <th scope="col">Lớp</th>
+                                <th scope="col">Lịch Dạy</th>
+                                <th scope="col">Buổi Dạy</th>
+                                <th scope="col"></th>
+                                <th scope="col"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="giangVien, no: ${listGiangVien}">
+                                <th scope="row" th:text="${no.index +1}">0</th>
+                                <td th:text="*{giangVien.hoTenGV}"></td>
+                                <td th:text="*{giangVien.sdtGV}"></td>
+                                <td th:text="*{giangVien.emailGV}"></td>
+                                <td th:text="${giangVien.hang != null ? giangVien.hang.tenHang : 'Chưa có hạng'}"></td>
+                                <td>
+                                    <ul style="list-style-type:none; ">
+                                        <li th:each="lop : ${giangVien.lopHocs}" th:text="${lop.tenLop} ?: 'Không có tên lớp'" style="margin-right: 20px"></li>
+                                    </ul>
+                                </td>
+                                <td th:text="*{giangVien.lichDay}"></td>
+                                <td th:text="*{giangVien.buoiDay}"></td>
+                                <td>
+                                    <a th:href="@{/admin/giang_vien/{id}(id=${giangVien.giangVienID})}" class="text-decoration-none">
+                                        <i class="fa-solid fa-pen-to-square" style="color: blue;"></i>
+                                    </a>
+                                </td>
+                                <td>
+                                     <button class="btn btn-danger" 
+                                            th:onclick="'confirmDelete(\'' + ${giangVien.giangVienID} + '\')'">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <nav th:if="${totalPage > 0}" aria-label="Page navigation example">
+					    <ul class="pagination">
+					        <!-- Previous Page Link -->
+					        <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
+					            <a class="page-link" 
+                                   th:href="@{'/admin/giang_vien'(pageNo=${currentPage - 1}, hang=${selectedHang}, buoiDay=${selectedBuoiDay}, lichDay=${selectedLichDay}, lopHoc=${selectedLopHoc}, keyword=${keyword})}" 
+                                   aria-label="Previous">
+					                <span aria-hidden="true">&laquo;</span>
+					            </a>
+					        </li>
+					        
+					        <!-- Page Number Links -->
+					        <li class="page-item" th:each="i : ${#numbers.sequence(1, totalPage)}" 
+					            th:classappend="${currentPage == i} ? 'active'">
+					            <a class="page-link" 
+                                   th:href="@{'/admin/giang_vien'(pageNo=${i}, hang=${selectedHang}, buoiDay=${selectedBuoiDay}, lichDay=${selectedLichDay}, lopHoc=${selectedLopHoc}, keyword=${keyword})}" 
+                                   th:text="${i}"></a>
+					        </li>
+					        
+					        <!-- Next Page Link -->
+					        <li class="page-item" th:classappend="${currentPage == totalPage} ? 'disabled'">
+					            <a class="page-link" 
+                                   th:href="@{'/admin/giang_vien'(pageNo=${currentPage + 1}, hang=${selectedHang}, buoiDay=${selectedBuoiDay}, lichDay=${selectedLichDay}, lopHoc=${selectedLopHoc}, keyword=${keyword})}" 
+                                   aria-label="Next">
+					                <span aria-hidden="true">&raquo;</span>
+					            </a>
+					        </li>
+					    </ul>
+					</nav>
+                </div>
+            </section>
+        </section>
+    </section>
+
+    <!-- Thêm scripts fragment -->
+    <div th:replace="format/layout :: scripts"></div>
+     <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            const message = /*[[${message}]]*/ null;
+            const error = /*[[${error}]]*/ null;
+            const success = /*[[${success}]]*/ null;
+
+            if ( success) {
+                Swal.fire({
+                    title: 'Thành công!',
+                    text:  success,
+                    icon: 'success',                
+                    confirmButtonText: 'Đóng',
+                    confirmButtonColor: '#198754',
+                    cancelButtonColor: '#6c757d'
+                });
+            }
+            
+               if ( message) {
+                Swal.fire({
+                    title: 'Thông Báo!',
+                    text: message ,
+                    icon: 'info',              
+                    confirmButtonText: 'Đóng',
+                    confirmButtonColor: '#198754',
+                    cancelButtonColor: '#6c757d'
+                });
+            }
+
+            if (error) {
+                Swal.fire({
+                    title: 'Lỗi!',
+                    text: error,
+                    icon: 'error',
+                    showCancelButton: true,
+                    confirmButtonText: 'Đồng ý',
+                    cancelButtonText: 'Huỷ',
+                    confirmButtonColor: '#dc3545',
+                    cancelButtonColor: '#6c757d'
+                });
+            }
+        });
+        
+                function confirmDelete(id) {
+            Swal.fire({
+                title: "Xác nhận xoá?",
+                text: "Bạn có chắc chắn muốn xoá giảng viên này không?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Xoá',
+                cancelButtonText: 'Huỷ'
+            }).then((result) => {
+                if(result.isConfirmed) {
+                    window.location.href = `/admin/giang_vien/delete/${id}`;
+                }
+            });
+        }
+    </script>
+</body>
+</html>

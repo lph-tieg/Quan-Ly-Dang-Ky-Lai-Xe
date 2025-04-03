@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="format/layout :: head">
+</head>
+
+<body>
+    <section class="dashboard" style="display:flex">
+        <div th:replace="format/menuAdmin :: menu" style="z-index: 1000"></div>
+
+        <section class="main-content-admin" >
+            <div th:replace="format/headerAdmin :: headerAdmin"></div>
+
+            <section class="content-hoc-vien mt-3">
+                <div class="container mt-2">
+                    <form th:action="@{/admin/danh_sach_dang_ky/chon_lop}" method="post" id="phanLopForm">
+                        <input type="hidden" th:value="${hocVienDk.id}" name="hocVienID">
+                        <!-- Rest of the form content -->
+                        <div class="row">
+                            <!-- Cột trái -->
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="hoTen" class="form-label"><strong>Họ và tên:</strong></label>
+                                    <input type="text" id="hoTen" name="hoTen" class="form-control"
+                                        th:value="${hocVienDk.hoTen}" disabled>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="sdt" class="form-label"><strong>Số điện thoại:</strong></label>
+                                    <input type="text" id="sdt" name="sdt" class="form-control"
+                                        th:value="${hocVienDk.sdt}" disabled>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="diaChi" class="form-label"><strong>Địa chỉ:</strong></label>
+                                    <input type="text" id="diaChi" name="diaChi" class="form-control"
+                                        th:value="${hocVienDk.diaChi}" disabled>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="hangDK" class="form-label"><strong>Hạng đăng ký:</strong></label>
+                                    <input type="text" id="hangDK" name="hangDK" class="form-control"
+                                        th:value="${hocVienDk.hangDK}" disabled>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="email" class="form-label"><strong>Email:</strong></label>
+                                    <input type="email" id="email" name="email" class="form-control"
+                                        th:value="${hocVienDk.email}" disabled>
+                                </div>
+                            </div>
+
+                            <!-- Cột phải -->
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="loaiXeDK" class="form-label"><strong>Loại xe đăng ký:</strong></label>
+                                    <input type="text" id="loaiXeDK" name="loaiXeDK" class="form-control"
+                                        th:value="${hocVienDk.loaiXeDK}" disabled>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="buoiHoc" class="form-label"><strong>Buổi học:</strong></label>
+                                    <input type="text" id="buoiHoc" name="buoiHoc" class="form-control"
+                                        th:value="${hocVienDk.buoiHoc}" disabled>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="loaiThucHanh" class="form-label"><strong>Thực hành:</strong></label>
+                                    <input type="text" id="loaiThucHanh" name="loaiThucHanh" class="form-control"
+                                        th:value="${hocVienDk.loaiThucHanh}" disabled>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="lichHoc" class="form-label"><strong>Lịch Đăng Ký:</strong></label>
+                                    <input type="text" id="lichHoc" name="lichHoc" class="form-control" 
+                                        th:value="${hocVienDk.lichHoc}" disabled>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="giangVien" class="form-label"><strong>Giảng viên đăng ký:</strong></label>
+                                    <input type="text" id="giangVien" name="giangVien" class="form-control" th:value="${GVChinh}" disabled>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="chonLop" class="form-label"><strong>Chọn lớp:</strong></label>
+                                    <select id="chonLop" name="lopHocID" class="form-select" required>
+                                        <option value="" disabled selected>-- Chọn lớp --</option>
+                                        <option th:each="lopHoc : ${listLopHoc}" 
+                                                th:value="${lopHoc.lopHocID}"
+                                                th:text="${lopHoc.tenLop}"
+                                                th:data-lich-hoc="${lopHoc.lichHoc}"
+                                                th:data-buoi-hoc="${lopHoc.buoiHoc}"
+                                                th:data-hang="${lopHoc.hang}"
+                                                th:attr="data-debug=${lopHoc.lichHoc}">
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary">Chọn Lớp</button>
+                            <a th:href="@{/admin/danh_sach_dang_ky}" class="btn btn-secondary">Quay lại danh sách</a>
+                        </div>
+                    </form>
+                </div>
+            </section>
+        </section>
+    </section>
+
+    <!-- Thêm scripts fragment -->
+    <div th:replace="format/layout :: scripts"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('phanLopForm');
+            const hoTenInput = document.getElementById('hoTen');
+            const lopHocSelect = document.getElementById('chonLop');
+            const lichHocInput = document.getElementById('lichHoc');
+            const buoiHocInput = document.getElementById('buoiHoc');
+            const hangDKInput = document.getElementById('hangDK');
+
+            // Hàm chuẩn hóa lịch học
+            function normalizeSchedule(schedule) {
+                if (!schedule) return '';
+                
+                // Chuyển đổi về chữ thường và loại bỏ khoảng trắng
+                let normalized = schedule.toLowerCase().replace(/\s+/g, '');
+                
+                // Chuẩn hóa các ký tự đặc biệt
+                normalized = normalized.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, '');
+                
+                // Thay thế các từ viết tắt phổ biến
+                normalized = normalized.replace('thu2', 't2')
+                    .replace('thu3', 't3')
+                    .replace('thu4', 't4')
+                    .replace('thu5', 't5')
+                    .replace('thu6', 't6')
+                    .replace('thu7', 't7')
+                    .replace('chunhat', 'cn')
+                    .replace('chủnhật', 'cn')
+                    .replace('chunhật', 'cn');
+                
+                // Đảm bảo định dạng t2-t4-t6 hoặc t3-t5-t7 hoặc t4-t6-cn
+                const days = normalized.match(/t[2-7]|cn/g) || [];
+                if (days.length > 0) {
+                    days.sort((a, b) => {
+                        const getValue = (day) => day === 'cn' ? 8 : parseInt(day.replace('t', ''));
+                        return getValue(a) - getValue(b);
+                    });
+                    normalized = days.join('-');
+                }
+                
+                console.log('Normalized schedule:', schedule, '->', normalized);
+                return normalized;
+            }
+
+            // Hàm lọc lớp học dựa trên lịch học, buổi học và hạng
+            function filterLopHoc() {
+                const selectedLichHoc = normalizeSchedule(lichHocInput.value);
+                const selectedBuoiHoc = buoiHocInput.value.trim();
+                const selectedHang = hangDKInput.value.trim();
+
+                console.log('Filtering with:', {
+                    lichHoc: selectedLichHoc,
+                    buoiHoc: selectedBuoiHoc,
+                    hang: selectedHang
+                });
+
+                // Ẩn tất cả các options trừ option đầu tiên
+                Array.from(lopHocSelect.options).forEach((option, index) => {
+                    if (index === 0) return; // Bỏ qua option đầu tiên (placeholder)
+                    
+                    const lopLichHoc = normalizeSchedule(option.getAttribute('data-lich-hoc'));
+                    const lopBuoiHoc = option.getAttribute('data-buoi-hoc');
+                    const lopHang = option.getAttribute('data-hang');
+
+                    console.log('Checking option:', {
+                        name: option.text,
+                        lichHoc: lopLichHoc,
+                        buoiHoc: lopBuoiHoc,
+                        hang: lopHang
+                    });
+
+                    // Kiểm tra điều kiện lọc
+                    const matchLichHoc = selectedLichHoc === lopLichHoc;
+                    const matchBuoiHoc = selectedBuoiHoc === lopBuoiHoc;
+                    const matchHang = lopHang && lopHang.includes(selectedHang);
+
+                    if (matchLichHoc && matchBuoiHoc && matchHang) {
+                        option.style.display = '';
+                        console.log('Showing option:', option.text);
+                    } else {
+                        option.style.display = 'none';
+                        console.log('Hiding option:', option.text, {
+                            matchLichHoc,
+                            matchBuoiHoc,
+                            matchHang,
+                            normalizedSelected: selectedLichHoc,
+                            normalizedLop: lopLichHoc
+                        });
+                    }
+                });
+
+                // Reset giá trị select nếu option đang chọn bị ẩn
+                const selectedOption = lopHocSelect.options[lopHocSelect.selectedIndex];
+                if (selectedOption && selectedOption.style.display === 'none') {
+                    lopHocSelect.value = '';
+                }
+
+                // Kiểm tra xem có lớp nào được hiển thị không
+                const visibleOptions = Array.from(lopHocSelect.options).filter(option => 
+                    option.style.display !== 'none' && option.value !== ''
+                );
+                
+                if (visibleOptions.length === 0) {
+                    console.log('No matching classes found');
+                } else {
+                    console.log('Found', visibleOptions.length, 'matching classes');
+                }
+            }
+
+            // Thêm event listeners cho input lịch học
+            lichHocInput.addEventListener('input', function(e) {
+                console.log('Lich hoc changed:', e.target.value);
+                // Đợi một chút trước khi lọc để đảm bảo giá trị đã được cập nhật
+                setTimeout(filterLopHoc, 100);
+            });
+
+            // Thêm event listener cho khi input mất focus
+            lichHocInput.addEventListener('change', function(e) {
+                console.log('Lich hoc finalized:', e.target.value);
+                filterLopHoc();
+            });
+
+            // Gọi hàm filterLopHoc khi trang được tải
+            console.log('Page loaded, initial filter');
+            filterLopHoc();
+
+            // Form submit handler
+            form.addEventListener('submit', function(event) {
+                event.preventDefault();
+                
+                const lopHocID = lopHocSelect.value;
+                if (!lopHocID) {
+                    Swal.fire({
+                        title: 'Lỗi!',
+                        text: 'Vui lòng chọn lớp học',
+                        icon: 'error',
+                        confirmButtonText: 'Đóng',
+                        confirmButtonColor: '#dc3545'
+                    });
+                    return;
+                }
+
+                const selectedLopHoc = lopHocSelect.options[lopHocSelect.selectedIndex].text;
+                
+                Swal.fire({
+                    title: 'Xác nhận phân lớp',
+                    html: `Bạn có chắc chắn muốn phân học viên <strong>${hoTenInput.value}</strong> vào lớp <strong>${selectedLopHoc}</strong>?`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#198754',
+                    cancelButtonColor: '#dc3545',
+                    confirmButtonText: 'Xác nhận',
+                    cancelButtonText: 'Hủy'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

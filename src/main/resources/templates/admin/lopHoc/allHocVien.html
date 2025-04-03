@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head th:replace="format/layout :: head">
+
+</head>
+
+<body>
+    <section class="dashboard" style="display:flex">
+        <div th:replace="format/menuAdmin :: menu" style="z-index: 1000"></div>
+
+        <section class="main-content-admin">
+            <div th:replace="format/headerAdmin :: headerAdmin"></div>
+
+            <section class="content-hoc-vien mt-5">
+                <div class="hoc-vien-admin container">
+                    <!-- Alert messages -->
+                    <div th:if="${message}" th:data-message="${message}" th:data-type="message" style="display: none;"></div>
+                    <div th:if="${error}" th:data-message="${error}" th:data-type="error" style="display: none;"></div>
+                    <div th:if="${success}" th:data-message="${success}" th:data-type="success" style="display: none;"></div>
+
+                    <!-- Header with back button -->
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="d-flex align-items-center">
+                            <a th:href="@{/admin/lop_hoc}" class="btn btn-secondary me-2">
+                                <i class="fas fa-arrow-left"></i> Quay lại
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Class Info Card -->
+                <div class="card mb-4">
+			        <div class="card-body">
+			            <h5 class="card-title text-center">Thông tin lớp học</h5>
+			            <div class="row">
+			                <div class="col-md-3">
+			                    <p><strong>Tên lớp:</strong> <span th:text="${lopHoc.tenLop}"></span></p>
+			                </div>
+			                <div class="col-md-3">
+			                    <p><strong>Lịch học:</strong> <span th:text="${lopHoc.lichHoc}"></span></p>
+			                </div>
+			                <div class="col-md-3">
+			                    <p><strong>Buổi học:</strong> <span th:text="${lopHoc.buoiHoc}"></span></p>
+			                </div>
+			                <div class="col-md-3">
+			                    <p><strong>Hạng:</strong> <span th:text="${lopHoc.hang.tenHang}"></span></p>
+			                </div>
+			                <div class="col-md-3">
+			                    <p><strong>Số lượng học viên:</strong> <span th:text="${listHocVien.size()}"></span></p>
+			                </div>
+			                <div class="col-md-3">
+			                    <p><strong>Số lượng giảng viên:</strong> <span th:text="${lopHoc.listGiangVien.size()}"></span></p>
+			                </div>
+			            </div>
+			        </div>
+			    </div>
+
+                    <!-- Students Table -->
+	                <table class="table table-striped" style="width: 100%;">
+				        <thead style="background-color: #f8f9fa;">
+				            <tr>
+				                <th style="width: 10%;">STT</th>
+				                <th style="width: 30%;">Họ và Tên</th>
+				                <th style="width: 30%;">Email</th>
+				                <th style="width: 30%;">Số điện thoại</th>
+				            </tr>
+				        </thead>
+				        <tbody style="height: 400px; overflow-y: auto;">
+				            <tr th:each="hocVien, no : ${listHocVien}">
+				                <td style="width: 10%;" th:text="${no.index + 1}">1</td>
+				                <td style="width: 30%;">
+				                    <a th:href="@{/admin/hoc_vien/chi_tiet/{id}(id=${hocVien.hocVienID})}" 
+				                       class="text-decoration-none text-primary hover-effect">
+				                        <span th:text="${hocVien.hoTen}"></span>
+				                    </a>
+				                </td>
+				                <td style="width: 30%;" th:text="${hocVien.email}"></td>
+				                <td style="width: 30%;" th:text="${hocVien.sdt}"></td>
+				            </tr>
+				        </tbody>
+				    </table>
+
+                    <!-- No students message -->
+                    <div th:if="${#lists.isEmpty(listHocVien)}" class="alert alert-info">
+                        Lớp học này chưa có học viên nào.
+                    </div>
+                </div>
+            </section>
+        </section>
+    </section>
+
+    <!-- Scripts -->
+    <div th:replace="format/layout :: scripts"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const message = /*[[${message}]]*/ null;
+            const error = /*[[${error}]]*/ null;
+            const success = /*[[${success}]]*/ null;
+
+            if (success) {
+                Swal.fire({
+                    title: 'Thành công!',
+                    text: success,
+                    icon: 'success',                
+                    confirmButtonText: 'Đóng',
+                    confirmButtonColor: '#198754'
+                });
+            }
+            
+            if (message) {
+                Swal.fire({
+                    title: 'Thông Báo!',
+                    text: message,
+                    icon: 'info',              
+                    confirmButtonText: 'Đóng',
+                    confirmButtonColor: '#0d6efd'
+                });
+            }
+
+            if (error) {
+                Swal.fire({
+                    title: 'Lỗi!',
+                    text: error,
+                    icon: 'error',
+                    confirmButtonText: 'Đóng',
+                    confirmButtonColor: '#dc3545'
+                });
+            }
+        });
+    </script>
+    	<style>
+    /* Style cho bảng */
+    .table {
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    /* Style cho header cố định */
+    thead {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        background-color: #f8f9fa;
+    }
+
+    /* Style cho tbody có thể cuộn */
+    tbody {
+        display: block;
+        overflow-y: auto;
+        width: 100%;
+    }
+
+    /* Style cho các hàng */
+    tr {
+        display: table;
+        width: 100%;
+        table-layout: fixed;
+    }
+
+    /* Style cho các cột */
+    th, td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    /* Hiệu ứng hover cho tên học viên */
+    .hover-effect:hover {
+        color: #0056b3 !important;
+        text-decoration: underline !important;
+    }
+
+    /* Style cho thanh cuộn */
+    tbody::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    tbody::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 3px;
+    }
+
+    tbody::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 3px;
+    }
+
+    tbody::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+
+    /* Style cho card thông tin */
+    .card {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+
+    .card-title {
+        color: #333;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+    }
+
+    .card-body p {
+        margin-bottom: 0.5rem;
+    }
+
+    .card-body strong {
+        color: #495057;
+    }
+</style>
+</body>
+</html>

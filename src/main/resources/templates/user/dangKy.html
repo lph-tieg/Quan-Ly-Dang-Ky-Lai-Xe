@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.9.1/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="/css/headerUserPage.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .content-dang-ky {
+            margin-top: 50px;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+    <title>Đăng Ký Khóa Học</title>
+</head>
+<body>
+    <div th:replace="format/header :: header"></div>
+     
+    <section class="dang-ky-KH">
+        <div class="title-dang-ky text-center" style="background: rgb(239, 237, 237); padding: 10px; height: 145px;">
+            <p class="fw-bold" style="padding-top: 15px; font-size: 30px;">Đăng Ký Khóa Học</p>
+            <p style="font-size: 20px;">Đăng Ký Khóa Học</p>
+        </div>
+        <div class="content-dang-ky container mt-5" style="width: 1000px; border-top: 5px solid #6a1b9a; margin-bottom: 35px;">
+        
+
+            <h2 class="text-center mt-4">Đăng Ký Khóa Học</h2>
+            <form id="registrationForm" th:action="@{/trung-tam-day-lai-xe-Thanh-Cong/dang_ky_khoa_hoc}" method="post" th:object="${hocVienDK}">
+            
+           
+                <div class="row">
+                    <!-- Cột trái -->
+                    <div class="col-md-6">
+                        <div class="form-group mt-3">
+                            <label for="hoTen">Họ và Tên:</label>
+                            <input type="text" class="form-control" id="hoTen" name="hoTen" required>
+                        </div>
+                        <div class="form-group mt-3">
+                            <label for="sdt">Số Điện Thoại:</label>
+                            <input type="tel" class="form-control" id="sdt" name="sdt" maxlength="11" required>
+                        </div>
+                        <div class="form-group mt-3">
+                            <label for="diaChi">Địa Chỉ Liên Hệ:</label>
+                            <input type="text" class="form-control" id="diaChi" name="diaChi" required>
+                        </div>
+                        <div class="form-group mt-3">
+                            <label for="email">Email:</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                    </div>
+                    <!-- Cột phải -->
+                    <div class="col-md-6">
+                        <div class="form-group mt-3">
+                            <label for="hangDK">Hạng Đăng Ký:</label>
+                            <select class="form-control" id="hangDK" name="hang" required onchange="filterXe()">
+                                <option value="" disabled selected>Chọn Hạng</option>
+                                <option th:each="hang : ${listHang}" 
+                                        th:value="${hang.hangID}" 
+                                        th:text="${hang.tenHang}"
+                                        th:data-ten-hang="${hang.tenHang}">
+                                </option>
+                            </select>
+                        </div>
+                         <div class="form-group mt-3">
+                            <label for="loaiXeDK">Chọn Loại Xe:</label>
+                            <select class="form-control" id="loaiXeDK" name="xeID" required>
+                                <option value="" disabled selected>Chọn Loại Xe</option>
+                                <option th:each="xeTapLai : ${listXe}" 
+                                        th:value="${xeTapLai.xeID}" 
+                                        th:data-loai="${xeTapLai.loaiXe}"
+                                        th:data-hang="${xeTapLai.hang != null ? xeTapLai.hang.tenHang : ''}"
+                                        th:text="${xeTapLai.tenXe + ' (Còn ' + xeTapLai.soLuongConLai + ' xe)'}"
+                                        th:disabled="${xeTapLai.soLuongConLai <= 0}"
+                                        style="display: none;">
+                                </option>
+                            </select>
+                            <small class="text-danger" id="xeHetCho" style="display: none;">Đã hết xe trống!</small>
+                        </div>
+                      <div class="form-group mt-3">
+						    <label for="buoiThucHanh">Chọn Buổi Thực Hành:</label>
+						    <select class="form-control" id="buoiThucHanh" name="buoiThucHanh">
+						        <option value="" disabled selected>Chọn Buổi Thực Hành</option>
+						        <option value="Sáng" th:selected="${buoiThucHanh == 'Sáng'}">Sáng</option>
+						        <option value="Chiều" th:selected="${buoiThucHanh == 'Chiều'}">Chiều</option>
+						        <option value="Tối" th:selected="${buoiThucHanh == 'Tối'}">Tối</option>
+						    </select>
+						</div>
+                       <div class="form-group mt-3">
+                            <label for="giangVien">Giảng Viên Dạy:</label>
+                            <select class="form-control" id="giangVien" name="giangVien" required  style="overflow-y: auto;">
+                                <option value="" disabled selected style="height: 30px; line-height: 30px;">Chọn Giảng Viên</option>
+                                <option th:each="gv : ${listGiangVien}" 
+                                        th:value="${gv.giangVienID}" 
+                                        th:text="${gv.hoTenGV}"
+                                        th:data-lich-hoc="${gv.lichDay}"
+                                        th:data-buoi-hoc="${gv.buoiDay}"
+                                        th:data-hang="${gv.hang != null ? gv.hang.tenHang : ''}">
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <!-- Hàng dưới cùng -->
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="form-group">
+						    <label for="buoiHoc">Chọn Lịch Học:</label>
+						    <select class="form-control" id="lichHoc" name="lichHoc">
+						        <option value="" disabled selected>Chọn Buổi Học</option>
+						        <option value="T2-T4-T6" th:selected="${lichHoc == 'T2-T4-T6'}">T2-T4-T6</option>
+						        <option value="T3-T5-T7" th:selected="${lichHoc == 'T3-T5-T7'}">T3-T5-T7</option>
+						        <option value="T4-T6-CN" th:selected="${lichHoc == 'T4-T6-CN'}">T4-T6-CN</option>
+						    </select>
+						</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="hinhThucThucHanh">Hình Thức Thực Hành:</label>
+                            <select class="form-control" id="loaiThucHanh" name="loaiThucHanh" required>
+                                <option value="" disabled selected>Chọn Hình Thức</option>
+                                <option value="Dân Tập">Dân Tập</option>
+                                <option value="Sa Hình">Sa Hình</option>
+                                <option value="Đường Trường">Đường Trường</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="form-group">
+                            <label for="ghiChu">Ghi Chú:</label>
+                            <textarea class="form-control" id="ghiChu" name="ghiChu" rows="4" placeholder="Nhập ghi chú của bạn tại đây..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <!-- Nút đăng ký -->
+                <div class="button-dang-ky text-center mt-4">
+                    <button type="submit" class="btn btn-primary btn-block" style="background-color: #6a1b9a; border: none">Đăng Ký</button>
+                </div>
+            </form>
+        </div>
+    </section>
+    <div th:replace="format/footer :: footer"></div>
+     <script>
+        // Hàm lọc giảng viên dựa trên lịch học, buổi học và hạng
+        function filterGiangVien() {
+            const lichHoc = document.getElementById('lichHoc');
+            const buoiThucHanh = document.getElementById('buoiThucHanh');
+            const hangSelect = document.getElementById('hangDK');
+            const giangVienSelect = document.getElementById('giangVien');
+            
+            // Reset giảng viên select
+            giangVienSelect.value = "";
+            
+            // Ẩn tất cả các options trừ option đầu tiên
+            Array.from(giangVienSelect.options).slice(1).forEach(option => {
+                option.style.display = "none";
+            });
+
+            // Kiểm tra xem đã chọn đủ các trường chưa
+            if (!lichHoc.value || !buoiThucHanh.value || !hangSelect.value) {
+                return;
+            }
+
+            const selectedHang = hangSelect.options[hangSelect.selectedIndex];
+            const hangTen = selectedHang.getAttribute('data-ten-hang');
+            
+            let hasMatchingTeacher = false;
+            
+            // Lọc và hiển thị giảng viên phù hợp
+            Array.from(giangVienSelect.options).slice(1).forEach(option => {
+                const gvLichHoc = option.getAttribute("data-lich-hoc");
+                const gvBuoiHoc = option.getAttribute("data-buoi-hoc");
+                const gvHang = option.getAttribute("data-hang");
+                
+                if (gvLichHoc === lichHoc.value && 
+                    gvBuoiHoc === buoiThucHanh.value && 
+                    gvHang === hangTen) {
+                    option.style.display = "";
+                    hasMatchingTeacher = true;
+                }
+            });
+
+            // Xử lý thông báo
+            let message = document.getElementById('giangVienMessage');
+            if (!message) {
+                message = document.createElement('small');
+                message.id = 'giangVienMessage';
+                message.className = 'text-danger mt-2 d-block';
+                giangVienSelect.parentNode.appendChild(message);
+            }
+            
+            if (!hasMatchingTeacher) {
+                message.textContent = 'Không có giảng viên phù hợp với lịch học và buổi thực hành đã chọn';
+                message.style.display = 'block';
+            } else {
+                message.style.display = 'none';
+            }
+        }
+
+        // Hàm lọc xe dựa trên hạng đăng ký
+        function filterXe() {
+            const hangSelect = document.getElementById("hangDK");
+            const loaiXeSelect = document.getElementById("loaiXeDK");
+            const xeHetChoMsg = document.getElementById('xeHetCho');
+            
+            // Reset xe select và thông báo
+            loaiXeSelect.value = "";
+            xeHetChoMsg.style.display = 'none';
+            
+            // Nếu chưa chọn hạng thì return
+            if (!hangSelect.value) {
+                return;
+            }
+            
+            const hangID = hangSelect.value; // Lấy hangID từ select
+            
+            // Gọi API để lấy danh sách xe theo hangID
+            fetch(`/trung-tam-day-lai-xe-Thanh-Cong/filter-xe?hangID=${encodeURIComponent(hangID)}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Lỗi khi tải danh sách xe: ' + response.status);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Received data:', data);
+                    
+                    // Xóa tất cả options cũ trừ option mặc định
+                    while (loaiXeSelect.options.length > 1) {
+                        loaiXeSelect.remove(1);
+                    }
+                    
+                    if (!Array.isArray(data) || data.length === 0) {
+                        xeHetChoMsg.textContent = 'Không có xe nào phù hợp với hạng này';
+                        xeHetChoMsg.style.display = 'block';
+                        return;
+                    }
+                    
+                    let hasAvailableVehicle = false;
+                    
+                    data.forEach(xe => {
+                        if (xe && xe.soLuongConLai > 0) {
+                            hasAvailableVehicle = true;
+                            const option = document.createElement('option');
+                            option.value = xe.xeID;
+                            option.textContent = `${xe.tenXe}`;
+                            loaiXeSelect.appendChild(option);
+                        }
+                    });
+                    
+                    if (!hasAvailableVehicle) {
+                        xeHetChoMsg.textContent = 'Tất cả xe của hạng này đã hết chỗ';
+                        xeHetChoMsg.style.display = 'block';
+                    } else {
+                        xeHetChoMsg.style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    xeHetChoMsg.textContent = error.message;
+                    xeHetChoMsg.style.display = 'block';
+                });
+        }
+
+        // Thêm event listeners cho các trường select
+        document.getElementById('hangDK').addEventListener('change', function() {
+            filterXe();
+            filterGiangVien();
+        });
+
+        document.getElementById('lichHoc').addEventListener('change', filterGiangVien);
+        document.getElementById('buoiThucHanh').addEventListener('change', filterGiangVien);
+
+        // Hàm lưu giá trị form
+        function saveFormValues() {
+            const formElements = document.querySelectorAll('input, select, textarea');
+            formElements.forEach(element => {
+                sessionStorage.setItem(element.id, element.value);
+            });
+        }
+
+        // Hàm khôi phục giá trị form
+        function restoreFormValues() {
+            const formElements = document.querySelectorAll('input, select, textarea');
+            formElements.forEach(element => {
+                const savedValue = sessionStorage.getItem(element.id);
+                if (savedValue !== null) {
+                    element.value = savedValue;
+                }
+            });
+        }
+
+        // Hàm xóa dữ liệu form
+        function clearFormValues() {
+            const formElements = document.querySelectorAll('input, select, textarea');
+            formElements.forEach(element => {
+                sessionStorage.removeItem(element.id);
+            });
+        }
+
+        // Xóa dữ liệu khi trang được tải lại
+        window.addEventListener('beforeunload', clearFormValues);
+
+        // Khôi phục giá trị khi trang được tải
+        window.addEventListener('DOMContentLoaded', () => {
+            restoreFormValues();
+        });
+
+        // Lưu giá trị khi có thay đổi
+        document.getElementById('lichHoc').addEventListener('change', saveFormValues);
+        document.getElementById('buoiThucHanh').addEventListener('change', saveFormValues);
+        document.getElementById('hangDK').addEventListener('change', saveFormValues);
+        document.getElementById('loaiXeDK').addEventListener('change', saveFormValues);
+        document.getElementById('giangVien').addEventListener('change', saveFormValues);
+
+        // Thêm kiểm tra số lượng xe còn lại
+        document.getElementById('loaiXeDK').addEventListener('change', function() {
+            var selectedOption = this.options[this.selectedIndex];
+            var xeHetChoMsg = document.getElementById('xeHetCho');
+            
+            if (selectedOption.disabled) {
+                xeHetChoMsg.style.display = 'block';
+                this.value = '';
+            } else {
+                xeHetChoMsg.style.display = 'none';
+            }
+        });
+    </script>
+    
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            const success = /*[[${success}]]*/ null;
+            const error = /*[[${error}]]*/ null;
+            
+            if (success) {
+                Swal.fire({
+                    title: 'Thành công!',
+                    text: success,
+                    icon: 'success',
+                    confirmButtonColor: '#198754',
+                    timer: 3500,
+                    showConfirmButton: false,
+                    position: 'top-end',
+                    toast: true
+                });
+            }
+            
+            if (error) {
+                Swal.fire({
+                    title: 'Lỗi!',
+                    text: error,
+                    icon: 'error',
+                    confirmButtonColor: '#dc3545',
+                    timer: 4000,
+                    showConfirmButton: false,
+                    position: 'top-end',
+                    toast: true
+                });
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.9.1/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="/css/headerUserPage.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <title>TƯ VẤN</title>
+    <style>
+        .content-tu-van {
+            margin-top: 50px;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+	<div th:replace="format/header :: header"></div>
+
+    <section class="tu-van" style ="margin-bottom: 35px">
+        <div class="title-tu-van text-center" style=" background: rgb(239, 237, 237); padding: 10px ; height: 145px; ">
+            <p class="fw-bold" style="padding-top: 15px; font-size: 30px;">Tư Vấn Khóa Học</p>
+            <p style="font-size: 20px;">Tư Vấn Khóa Học</p>
+        </div>
+
+        <div class="content-tu-van container" style="width: 500px; border-top: 5px solid #6a1b9a;">
+		    <h2 class="text-center">Đăng Ký Tư Vấn</h2>
+		    <form th:action="@{/trung-tam-day-lai-xe-Thanh-Cong/dang_ky_tu_van}" id="registrationForm" th:object="${tuVan}" method="post">
+		        <div class="form-group">
+		            <label for="name" class="mt-3">Họ và Tên:</label>
+		            <input type="text" class="form-control" id="name" name="name" required>
+		        </div>
+		        <div class="form-group mt-3">
+		            <label for="sdt">Số Điện Thoại:</label>
+		            <input type="tel" class="form-control" id="sdt" name="sdt" required maxLength="12">
+		        </div>
+		        <div class="form-group mt-3">
+		            <label for="email">Email:</label>
+		            <input type="email" class="form-control" id="email" name="email" required>
+		        </div>
+		        <div class="form-group mt-3">
+		            <label for="diaChi">Địa Chỉ Liên Hệ:</label>
+		            <input type="text" class="form-control" id="diaChi" name="diaChi" required>
+		        </div>
+		        <div class="form-group mt-3">
+		            <label for="hangDK">Hạng Đăng Ký:</label>
+		            <select class="form-control" id="hangDK" name="hangDK" required>
+		                <option value="" disabled selected>Chọn Hạng</option>
+		                <option value="A1">Hạng A1</option>
+		                <option value="A2">Hạng A2</option>
+		                <option value="A3">Hạng A3</option>
+		                <option value="A4">Hạng A4</option>
+		                <option value="B1">Hạng B1</option>
+		                <option value="B2">Hạng B2</option>
+		                <option value="C">Hạng C</option>
+		                <option value="D">Hạng D</option>
+		                <option value="E">Hạng E</option>
+		                <option value="FB2">Hạng FB2</option>
+		                <option value="FC">Hạng FC</option>
+		                <option value="FD">Hạng FD</option>
+		                <option value="FE">Hạng FE</option>
+		            </select>
+		        </div>
+		        <div class="text-center mt-3">
+		            <button type="submit" class="btn btn-primary" style="background-color: #6A1B9A; border-color: #6A1B9A;">Gửi</button>
+		        </div>
+		    </form>
+		</div>
+
+    </section>
+    
+    <div th:replace="format/footer :: footer"></div>
+
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            const error = /*[[${error}]]*/ null;
+            const success = /*[[${success}]]*/ null;
+
+            if (error) {
+                Swal.fire({
+                    title: 'Lỗi!',
+                    text: error,
+                    icon: 'error',
+                    confirmButtonColor: '#dc3545',
+                    timer: 3000,
+                    showConfirmButton: false,
+                    position: 'top-end',
+                    toast: true
+                });
+            }
+
+            if (success) {
+                Swal.fire({
+                    title: 'Thành công!',
+                    text: success,
+                    icon: 'success',
+                    confirmButtonColor: '#198754',
+                    timer: 1500,
+                    showConfirmButton: false,
+                    position: 'top-end',
+                    toast: true
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>
