@@ -1,9 +1,11 @@
 package com.example.DoAn.Controller;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,8 +24,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.DoAn.Model.AdminAccount;
+import com.example.DoAn.Model.GiangVien;
 import com.example.DoAn.Model.Hang;
 import com.example.DoAn.Model.HocVien;
 import com.example.DoAn.Model.LopHoc;
@@ -235,14 +239,16 @@ public class HocVienController {
 
 		List<Hang> listHang = hangService.findAll();
 		List<LopHoc> listLopHoc = lopHocService.findAllLopHoc();
+		List<GiangVien> listGiangVien = giangVienService.findAllGiangVien();
+		
 		model.addAttribute("listHang", listHang);
 		model.addAttribute("listLopHoc", listLopHoc);
+		model.addAttribute("listGiangVien", listGiangVien);
 		model.addAttribute("hocVien", hocVienService.findByID(hocVienID));
 		model.addAttribute("listKhoaHoc", khoaHocService.findAllKhoaHoc());
 		model.addAttribute("listXe", xeService.findAllXe());
 		model.addAttribute("pageTitle", "Học Viên/Cập Nhật");
 		return ("/admin/hocVien/addUpateHocVien");
-
 	}
 
 	// Thông tin chi tiết học viên
@@ -260,37 +266,65 @@ public class HocVienController {
 			throw new RuntimeException("Không tìm thấy học viên với ID: " + hocVienID);
 		}
 
+		// Tạo danh sách giảng viên không trùng lặp
+		Set<GiangVien> uniqueGiangViens = new HashSet<>();
+		for (LopHoc lopHoc : hocVien.getLopHocs()) {
+			System.out.println("Lớp học: " + lopHoc.getTenLop());
+			System.out.println("Số giảng viên trong lớp: " + (lopHoc.getListGiangVien() != null ? lopHoc.getListGiangVien().size() : 0));
+			if (lopHoc.getListGiangVien() != null) {
+				for (GiangVien gv : lopHoc.getListGiangVien()) {
+					System.out.println("Giảng viên: " + gv.getHoTenGV() + " (ID: " + gv.getGiangVienID() + ")");
+				}
+				uniqueGiangViens.addAll(lopHoc.getListGiangVien());
+			}
+		}
+		List<GiangVien> listGiangVien = new ArrayList<>(uniqueGiangViens);
+		System.out.println("Tổng số giảng viên không trùng lặp: " + listGiangVien.size());
+		for (GiangVien gv : listGiangVien) {
+			System.out.println("Giảng viên sau khi loại bỏ trùng lặp: " + gv.getHoTenGV() + " (ID: " + gv.getGiangVienID() + ")");
+		}
+
 		model.addAttribute("hocVien", hocVien);
+		model.addAttribute("listGiangVien", listGiangVien);
 		model.addAttribute("pageTitle", "Thông tin chi tiết học viên");
 		return "admin/hocVien/hocVienDetail";
 	}
 
-	// Xử lý Post khi cập nhật
+	@Transactional
 	@PostMapping("/cap_nhat")
 	public String getUpdateHocVien(@ModelAttribute("hocVien") HocVien hocVien,
-			@RequestParam("lopHocID") Integer lopHocID, RedirectAttributes redirectAttributes,
+			@RequestParam("lopHocID") Integer lopHocID,
+			@RequestParam("giangVienChinhID") Integer giangVienChinhID,
+			RedirectAttributes redirectAttributes,
 			Authentication authentication, Model model) {
 		try {
 			String nguoiThucHien = authentication.getName();
 
-			// Kiểm tra lớp học mới
+			// Get instructor info
+			GiangVien giangVienChinh = giangVienService.findByIDGV(giangVienChinhID);
+			if (giangVienChinh == null) {
+				model.addAttribute("error", "Không tìm thấy giảng viên");
+				return setupUpdatePage(hocVien.getHocVienID(), model, authentication);
+			}
+
+			// Get class info
 			LopHoc lopHocMoi = lopHocService.findByLopHocID(lopHocID);
 			if (lopHocMoi == null) {
 				model.addAttribute("error", "Không tìm thấy lớp học");
 				return setupUpdatePage(hocVien.getHocVienID(), model, authentication);
 			}
 
-			// Lấy thông tin học viên hiện tại từ database
+			// Get current student info from database
 			HocVien hocVienHienTai = hocVienService.findByID(hocVien.getHocVienID());
 			if (hocVienHienTai == null) {
 				model.addAttribute("error", "Không tìm thấy thông tin học viên");
 				return setupUpdatePage(hocVien.getHocVienID(), model, authentication);
 			}
 
-			// Tạo StringBuilder để lưu các thay đổi
+			// Create StringBuilder to track changes
 			StringBuilder changes = new StringBuilder();
 
-			// Kiểm tra và ghi nhận các thay đổi
+			// Check and record changes
 			if (!Objects.equals(hocVienHienTai.getHoTen(), hocVien.getHoTen())) {
 				changes.append("Họ tên: ").append(hocVienHienTai.getHoTen()).append(" → ").append(hocVien.getHoTen())
 						.append("\n");
@@ -307,8 +341,15 @@ public class HocVienController {
 				changes.append("Địa chỉ: ").append(hocVienHienTai.getDiaChi()).append(" → ").append(hocVien.getDiaChi())
 						.append("\n");
 			}
+			if (!Objects.equals(hocVienHienTai.getGiangVienChinh(), giangVienChinh)) {
+				changes.append("Giảng viên chính: ")
+						.append(hocVienHienTai.getGiangVienChinh() != null ? hocVienHienTai.getGiangVienChinh().getHoTenGV() : "Chưa có")
+						.append(" → ")
+						.append(giangVienChinh.getHoTenGV())
+						.append("\n");
+			}
 
-			// Cập nhật thông tin cơ bản
+			// Update basic information
 			hocVienHienTai.setHoTen(hocVien.getHoTen());
 			hocVienHienTai.setEmail(hocVien.getEmail());
 			hocVienHienTai.setSdt(hocVien.getSdt());
@@ -318,30 +359,41 @@ public class HocVienController {
 			hocVienHienTai.setLichHoc(hocVien.getLichHoc());
 			hocVienHienTai.setLoaiXeDK(hocVien.getLoaiXeDK());
 			hocVienHienTai.setLoaiThucHanh(hocVien.getLoaiThucHanh());
-			hocVienHienTai.setGiangVienChinh(hocVien.getGiangVienChinh());
+			hocVienHienTai.setGiangVienChinh(giangVienChinh);
+			hocVienHienTai.setGhiChu(hocVien.getGhiChu());
 
-			// Cập nhật lớp học
+			// Update class
 			if (!hocVienHienTai.getLopHocs().contains(lopHocMoi)) {
-				// Lưu lại các lớp học cũ để kiểm tra
+				// Save old classes for checking
 				List<LopHoc> lopHocCu = new ArrayList<>(hocVienHienTai.getLopHocs());
-				
-				// Xóa học viên khỏi các lớp cũ và cập nhật số lượng
+
+				// Remove student from old classes and update count
 				for (LopHoc lop : lopHocCu) {
+					// Save instructor list of old class
+					List<GiangVien> currentGiangViens = new ArrayList<>(lop.getListGiangVien());
+					List<Integer> giangVienIds = currentGiangViens.stream().map(GiangVien::getGiangVienID)
+							.collect(Collectors.toList());
+
 					hocVienHienTai.removeLopHoc(lop);
-					lopHocService.updateLopHoc(lop, null, nguoiThucHien);
+					lopHocService.updateLopHoc(lop, giangVienIds, nguoiThucHien);
 					changes.append("Xóa khỏi lớp: ").append(lop.getTenLop()).append("\n");
 				}
-				
-				// Thêm lớp học mới
+
+				// Add new class
 				hocVienHienTai.addLopHoc(lopHocMoi);
 				changes.append("Thêm lớp học: ").append(lopHocMoi.getTenLop()).append("\n");
-				
-				// Cập nhật số lượng học viên cho lớp mới
-				lopHocMoi.tangSoLuong();
-				lopHocService.updateLopHoc(lopHocMoi, null, nguoiThucHien);
+
+				// Save instructor list of new class
+				List<GiangVien> newGiangViens = new ArrayList<>(lopHocMoi.getListGiangVien());
+				List<Integer> newGiangVienIds = newGiangViens.stream().map(GiangVien::getGiangVienID)
+						.collect(Collectors.toList());
+
+				// Update student count for new class
+				lopHocMoi.capNhatSoLuong();
+				lopHocService.updateLopHoc(lopHocMoi, newGiangVienIds, nguoiThucHien);
 			}
 
-			// Lưu thay đổi
+			// Save changes
 			hocVienService.updateHocVien(hocVienHienTai, nguoiThucHien);
 
 			redirectAttributes.addFlashAttribute("success", "Cập nhật học viên thành công");
@@ -373,6 +425,7 @@ public class HocVienController {
 	}
 
 	// Xử lý Post khi xoá học viên
+	@Transactional
 	@PostMapping("/delete/{id}")
 	public String deleteHocVien(@PathVariable("id") Integer hocVienID, RedirectAttributes redirectAttributes,
 			Authentication authentication) {

@@ -151,32 +151,32 @@
                     </table>
 
                   <nav th:if="${totalPage > 0}" aria-label="Page navigation example">
-    <ul class="pagination">
-        <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
-            <a class="page-link" 
-               th:href="@{'/admin/xe_tap_lai'(pageNo=${currentPage - 1}, keyword=${keyword}, hang=${selectedHang}, loaiSoXe=${selectedLoaiSoXe}, loaiXe=${selectedLoaiXe})}" 
-               aria-label="Previous">
-                <span aria-hidden="true">&laquo;</span>
-            </a>
-        </li>
-        
-        <li class="page-item" 
-            th:each="i : ${#numbers.sequence(1, totalPage)}" 
-            th:classappend="${currentPage == i} ? 'active'">
-            <a class="page-link" 
-               th:href="@{'/admin/xe_tap_lai'(pageNo=${i}, keyword=${keyword}, hang=${selectedHang}, loaiSoXe=${selectedLoaiSoXe}, loaiXe=${selectedLoaiXe})}" 
-               th:text="${i}"></a>
-        </li>
-        
-        <li class="page-item" th:classappend="${currentPage == totalPage} ? 'disabled'">
-            <a class="page-link" 
-               th:href="@{'/admin/xe_tap_lai'(pageNo=${currentPage + 1}, keyword=${keyword}, hang=${selectedHang}, loaiSoXe=${selectedLoaiSoXe}, loaiXe=${selectedLoaiXe})}" 
-               aria-label="Next">
-                <span aria-hidden="true">&raquo;</span>
-            </a>
-        </li>
-    </ul>
-</nav>
+					    <ul class="pagination">
+					        <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
+					            <a class="page-link" 
+					               th:href="@{'/admin/xe_tap_lai'(pageNo=${currentPage - 1}, keyword=${keyword}, hang=${selectedHang}, loaiSoXe=${selectedLoaiSoXe}, loaiXe=${selectedLoaiXe})}" 
+					               aria-label="Previous">
+					                <span aria-hidden="true">&laquo;</span>
+					            </a>
+					        </li>
+					        
+					        <li class="page-item" 
+					            th:each="i : ${#numbers.sequence(1, totalPage)}" 
+					            th:classappend="${currentPage == i} ? 'active'">
+					            <a class="page-link" 
+					               th:href="@{'/admin/xe_tap_lai'(pageNo=${i}, keyword=${keyword}, hang=${selectedHang}, loaiSoXe=${selectedLoaiSoXe}, loaiXe=${selectedLoaiXe})}" 
+					               th:text="${i}"></a>
+					        </li>
+					        
+					        <li class="page-item" th:classappend="${currentPage == totalPage} ? 'disabled'">
+					            <a class="page-link" 
+					               th:href="@{'/admin/xe_tap_lai'(pageNo=${currentPage + 1}, keyword=${keyword}, hang=${selectedHang}, loaiSoXe=${selectedLoaiSoXe}, loaiXe=${selectedLoaiXe})}" 
+					               aria-label="Next">
+					                <span aria-hidden="true">&raquo;</span>
+					            </a>
+					        </li>
+					    </ul>
+					</nav>
                 </div>
             </section>
         </section>

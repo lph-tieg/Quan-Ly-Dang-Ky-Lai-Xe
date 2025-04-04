@@ -1,6 +1,7 @@
 package com.example.DoAn.Model;
 
 import java.util.List;
+import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -159,6 +160,20 @@ public class GiangVien {
 	@Override
 	public String toString() {
 		return hoTenGV;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		GiangVien giangVien = (GiangVien) o;
+		return Objects.equals(giangVienID, giangVien.giangVienID) &&
+				Objects.equals(hoTenGV, giangVien.hoTenGV);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(giangVienID, hoTenGV);
 	}
 
 //	public List<KhoaHoc> getKhoaHoc() {

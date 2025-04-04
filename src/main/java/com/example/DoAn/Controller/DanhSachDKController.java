@@ -261,40 +261,35 @@ public class DanhSachDKController {
 	// Xử lý yêu cầu POST để phân lớp cho học viê
 	@Transactional
 	@PostMapping("/chon_lop")
-	public String chonLop(@RequestParam(value = "hocVienID") Integer hocVienID,
-			@RequestParam("lopHocID") Integer lopHocID, RedirectAttributes redirectAttributes,
-			Authentication authentication) {
+	public String chonLop(@RequestParam("hocVienID") Integer hocVienID, @RequestParam("lopHocID") Integer lopHocID,
+			RedirectAttributes redirectAttributes, Authentication authentication) {
 		try {
-			System.out.println("=== BẮT ĐẦU QUÁ TRÌNH PHÂN LỚP ===");
-			System.out.println("Dữ liệu nhận được - ID học viên: " + hocVienID + ", ID lớp: " + lopHocID);
+			String nguoiThucHien = authentication.getName();
 
 			// 1. Tìm thông tin học viên đăng ký
 			DanhSachDangKy hocVienDK = dangKyService.findById(hocVienID);
 			if (hocVienDK == null) {
-				throw new RuntimeException("Không tìm thấy học viên đăng ký với ID: " + hocVienID);
+				redirectAttributes.addFlashAttribute("error", "Không tìm thấy học viên đăng ký");
+				return "redirect:/admin/danh_sach_dang_ky";
 			}
-			System.out.println("1. Tìm thấy học viên đăng ký: " + hocVienDK.getHoTen());
 
 			// 2. Tìm thông tin lớp học
 			LopHoc lopHoc = lopHocService.findByLopHocID(lopHocID);
 			if (lopHoc == null) {
-				throw new RuntimeException("Không tìm thấy lớp học với ID: " + lopHocID);
+				redirectAttributes.addFlashAttribute("error", "Không tìm thấy lớp học");
+				return "redirect:/admin/danh_sach_dang_ky";
 			}
-			System.out.println("2. Tìm thấy lớp học: " + lopHoc.getTenLop());
 
 			// 3. Tìm thông tin giảng viên
 			List<GiangVien> giangViens = giangVienService
 					.findByHoTenGVContainingIgnoreCase(hocVienDK.getGVChinh(), PageRequest.of(0, 1)).getContent();
-
 			if (giangViens.isEmpty()) {
-				throw new RuntimeException("Không tìm thấy giảng viên: " + hocVienDK.getGVChinh());
+				redirectAttributes.addFlashAttribute("error", "Không tìm thấy giảng viên: " + hocVienDK.getGVChinh());
+				return "redirect:/admin/danh_sach_dang_ky";
 			}
-			GiangVien giangVienChinh = giangViens.get(0); // Lấy giảng viên đầu tiên tìm thấy
-
-			String nguoiThucHien = authentication.getName();
+			GiangVien giangVienChinh = giangViens.get(0);
 
 			// 4. Tạo đối tượng học viên mới
-			System.out.println("4. Bắt đầu tạo học viên mới");
 			HocVien hocVien = new HocVien();
 			hocVien.setHoTen(hocVienDK.getHoTen());
 			hocVien.setSdt(hocVienDK.getSdt());
@@ -306,59 +301,49 @@ public class DanhSachDKController {
 			hocVien.setLoaiXeDK(hocVienDK.getLoaiXeDK());
 			hocVien.setLoaiThucHanh(hocVienDK.getLoaiThucHanh());
 			hocVien.setGiangVienChinh(giangVienChinh);
+			hocVien.setGhiChu(hocVienDK.getGhiChu());
 
-			// 5. Cập nhật lớp học trước khi lưu học viên
-			System.out.println("5. Cập nhật thông tin lớp học");
+			// 5. Cập nhật lớp học
 			boolean giangVienDaTonTai = lopHoc.getListGiangVien().stream()
 					.anyMatch(gv -> gv.getGiangVienID().equals(giangVienChinh.getGiangVienID()));
 			if (!giangVienDaTonTai) {
-				System.out.println("   Thêm giảng viên " + giangVienChinh.getHoTenGV() + " vào lớp");
 				lopHoc.getListGiangVien().add(giangVienChinh);
 			}
-			lopHoc.tangSoLuong();
 
-			// 6. Lưu cập nhật lớp học
-			try {
-				lopHocService.updateLopHoc(lopHoc,
-						lopHoc.getListGiangVien().stream().map(gv -> gv.getGiangVienID()).collect(Collectors.toList()),
-						nguoiThucHien);
-				System.out.println("   Đã cập nhật thông tin lớp học");
-			} catch (Exception e) {
-				throw new RuntimeException("Không thể cập nhật thông tin lớp học: " + e.getMessage());
-			}
-
-			// 7. Gán lớp học cho học viên và lưu học viên
+			// 6. Gán lớp học cho học viên và lưu
 			hocVien.addLopHoc(lopHoc);
 			HocVien savedHocVien = hocVienService.createHocVien(hocVien, nguoiThucHien);
 			if (savedHocVien == null || savedHocVien.getHocVienID() == null) {
-				throw new RuntimeException("Không thể lưu thông tin học viên mới");
+				redirectAttributes.addFlashAttribute("error", "Không thể lưu thông tin học viên");
+				return "redirect:/admin/danh_sach_dang_ky";
 			}
-			System.out.println("   Đã lưu học viên mới với ID: " + savedHocVien.getHocVienID());
 
-			// 8. Xóa thông tin đăng ký sau khi phân lớp thành công
+			// 7. Cập nhật số lượng học viên trong lớp
+			lopHoc.capNhatSoLuong();
+			lopHocService.updateLopHoc(lopHoc,
+					lopHoc.getListGiangVien().stream().map(GiangVien::getGiangVienID).collect(Collectors.toList()),
+					nguoiThucHien);
+
+			// 8. Xóa thông tin đăng ký
 			dangKyService.deleteHocVienDK(hocVienID);
-			System.out.println("   Đã xóa thông tin đăng ký");
 
-			System.out.println("=== HOÀN TẤT QUÁ TRÌNH PHÂN LỚP ===");
 			redirectAttributes.addFlashAttribute("success",
 					"Phân lớp thành công cho học viên: " + hocVienDK.getHoTen());
 			return "redirect:/admin/danh_sach_dang_ky";
-
 		} catch (Exception e) {
-			System.out.println("=== LỖI TRONG QUÁ TRÌNH PHÂN LỚP ===");
-			System.out.println("Chi tiết lỗi: " + e.getMessage());
-			e.printStackTrace();
-			redirectAttributes.addFlashAttribute("error", "Có lỗi xảy ra khi phân lớp: " + e.getMessage());
+			redirectAttributes.addFlashAttribute("error", "Lỗi khi phân lớp: " + e.getMessage());
 			return "redirect:/admin/danh_sach_dang_ky";
 		}
 	}
 
 	// Xử lý yêu cầu GET để xóa học viên đăng ký
-	@GetMapping("/delete/{id}")
-	public String deleteHocVien(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
+	@Transactional
+	@PostMapping("/xoa/{id}")
+	public String deleteHocVienDK(@PathVariable("id") Integer hocVienID, RedirectAttributes redirectAttributes,
+			Authentication authentication) {
 		try {
 			// Call your service to delete the student
-			dangKyService.deleteHocVienDK(id);
+			dangKyService.deleteHocVienDK(hocVienID);
 			redirectAttributes.addFlashAttribute("success", "Xoá học viên thành công!");
 		} catch (Exception e) {
 			redirectAttributes.addFlashAttribute("error", "Không thể xoá học viên. Vui lòng thử lại!");

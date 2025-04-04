@@ -50,12 +50,9 @@
                         <span th:text="${lopHoc.tenLop + (iterStat.last ? '' : ', ')}"></span>
                     </span>
                 </p>
-                <p><strong>Giảng viên phụ trách:</strong> 
-                    <span th:each="lopHoc : ${hocVien.lopHocs}">
-                        <span th:each="gv, iterStat : ${lopHoc.listGiangVien}" 
-                              th:if="${gv.giangVienID != hocVien.giangVienChinh?.giangVienID}">
-                            <span th:text="${gv.hoTenGV + (iterStat.last ? '' : ', ')}"></span>
-                        </span>
+                <p><strong>Giảng viên dạy:</strong> 
+                    <span th:each="gv, iterStat : ${listGiangVien}">
+                        <span th:text="${gv.hoTenGV + (iterStat.last ? '' : ', ')}"></span>
                     </span>
                 </p>
             </div>

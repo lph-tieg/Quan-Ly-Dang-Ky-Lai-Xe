@@ -18,8 +18,8 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -273,6 +273,7 @@ public class LopHocController {
 	}
 
 	// Xử lý Post cho cập nhật
+	@Transactional
 	@PostMapping("/cap_nhat")
 	public String updateLopHoc(@ModelAttribute("lopHoc") LopHoc lopHoc, RedirectAttributes redirectAttributes,
 			@RequestParam(value = "hangID") Integer hangID,
@@ -355,20 +356,6 @@ public class LopHocController {
 
 	// Xử lý Post cho xoá lớp học
 	@PostMapping("/delete/{id}")
-	public String deleteLopHoc(@PathVariable("id") Integer lopHocID, RedirectAttributes redirectAttributes,
-			Authentication authentication) {
-		try {
-			String nguoiThucHien = authentication.getName();
-			lopHocService.deleteLop(lopHocID, nguoiThucHien);
-			redirectAttributes.addFlashAttribute("success", "Xoá lớp học thành công");
-		} catch (Exception e) {
-			redirectAttributes.addFlashAttribute("error", "Không thể xoá, hãy thử lại");
-		}
-		return "redirect:/admin/lop_hoc";
-	}
-
-	// Xoá lớp học
-	@DeleteMapping("/delete/{id}")
 	@ResponseBody
 	public ResponseEntity<Map<String, Object>> deleteLopHoc(@PathVariable("id") Integer lopHocID,
 			Authentication authentication) {
@@ -453,6 +440,7 @@ public class LopHocController {
 		}
 	}
 
+	@Transactional
 	@PostMapping("/{id}/them_hoc_vien")
 	public String themHocVien(@PathVariable("id") Integer lopHocID,
 			@RequestParam("hocVienIds") List<Integer> hocVienIds, RedirectAttributes redirectAttributes,
@@ -466,6 +454,11 @@ public class LopHocController {
 				redirectAttributes.addFlashAttribute("error", "Lớp học không tồn tại");
 				return "redirect:/admin/lop_hoc";
 			}
+
+			// Lưu lại danh sách giảng viên hiện tại
+			List<GiangVien> currentGiangViens = new ArrayList<>(lopHoc.getListGiangVien());
+			List<Integer> giangVienIds = currentGiangViens.stream().map(GiangVien::getGiangVienID)
+					.collect(Collectors.toList());
 
 			int soHocVienThem = 0;
 			// Add each selected student to the class
@@ -481,7 +474,8 @@ public class LopHocController {
 			// Cập nhật số lượng học viên trong lớp
 			if (soHocVienThem > 0) {
 				lopHoc.capNhatSoLuong();
-				lopHocService.updateLopHoc(lopHoc, null, nguoiThucHien);
+				// Cập nhật lớp học với danh sách giảng viên hiện tại
+				lopHocService.updateLopHoc(lopHoc, giangVienIds, nguoiThucHien);
 			}
 
 			redirectAttributes.addFlashAttribute("success",
@@ -493,35 +487,41 @@ public class LopHocController {
 		}
 	}
 
+	@Transactional
 	@PostMapping("/{lopHocID}/xoa_hoc_vien")
 	public String xoaHocVienKhoiLop(@PathVariable("lopHocID") Integer lopHocID,
 			@RequestParam("hocVienID") Integer hocVienID, RedirectAttributes redirectAttributes,
 			Authentication authentication) {
 		try {
 			String nguoiThucHien = authentication.getName();
-			
+
 			// Lấy thông tin lớp học và học viên
 			LopHoc lopHoc = lopHocService.findByLopHocID(lopHocID);
 			HocVien hocVien = hocVienService.findByID(hocVienID);
-			
+
 			if (lopHoc == null || hocVien == null) {
 				redirectAttributes.addFlashAttribute("error", "Không tìm thấy thông tin lớp học hoặc học viên");
 				return "redirect:/admin/lop_hoc/" + lopHocID + "/danh_sach";
 			}
-			
+
+			// Lưu lại danh sách giảng viên hiện tại
+			List<GiangVien> currentGiangViens = new ArrayList<>(lopHoc.getListGiangVien());
+			List<Integer> giangVienIds = currentGiangViens.stream().map(GiangVien::getGiangVienID)
+					.collect(Collectors.toList());
+
 			// Xóa học viên khỏi lớp
 			hocVien.removeLopHoc(lopHoc);
-			
+
 			// Cập nhật số lượng học viên
 			lopHoc.capNhatSoLuong();
-			
+
 			// Cập nhật thông tin lớp học và học viên
-			lopHocService.updateLopHoc(lopHoc, null, nguoiThucHien);
+			lopHocService.updateLopHoc(lopHoc, giangVienIds, nguoiThucHien);
 			hocVienService.updateHocVien(hocVien, nguoiThucHien);
-			
+
 			redirectAttributes.addFlashAttribute("success", "Đã xóa học viên khỏi lớp thành công");
 			return "redirect:/admin/lop_hoc/" + lopHocID + "/danh_sach";
-			
+
 		} catch (Exception e) {
 			redirectAttributes.addFlashAttribute("error", "Lỗi khi xóa học viên khỏi lớp: " + e.getMessage());
 			return "redirect:/admin/lop_hoc/" + lopHocID + "/danh_sach";

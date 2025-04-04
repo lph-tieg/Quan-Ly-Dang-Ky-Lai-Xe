@@ -144,6 +144,20 @@ public class LopHoc {
 		this.soLuong = (long) this.hocViens.size();
 	}
 
+	public void addHocVien(HocVien hocVien) {
+		if (!hocViens.contains(hocVien)) {
+			hocViens.add(hocVien);
+			capNhatSoLuong();
+		}
+	}
+
+	public void removeHocVien(HocVien hocVien) {
+		if (hocViens.contains(hocVien)) {
+			hocViens.remove(hocVien);
+			capNhatSoLuong();
+		}
+	}
+
 	@Override
 	public String toString() {
 		return tenLop;

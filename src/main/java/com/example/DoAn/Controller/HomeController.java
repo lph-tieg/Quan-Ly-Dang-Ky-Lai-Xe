@@ -266,6 +266,7 @@ public class HomeController {
 				simplified.put("xeID", xe.getXeID());
 				simplified.put("tenXe", xe.getTenXe());
 				simplified.put("soLuongConLai", xe.getSoLuongConLai());
+				simplified.put("loaiSoXe", xe.getLoaiSoXe());
 				return simplified;
 			}).collect(Collectors.toList());
 		} catch (Exception e) {
