@@ -16,6 +16,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -24,7 +25,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.example.DoAn.Model.AdminAccount;
 import com.example.DoAn.Model.GiangVien;
@@ -240,7 +240,7 @@ public class HocVienController {
 		List<Hang> listHang = hangService.findAll();
 		List<LopHoc> listLopHoc = lopHocService.findAllLopHoc();
 		List<GiangVien> listGiangVien = giangVienService.findAllGiangVien();
-		
+
 		model.addAttribute("listHang", listHang);
 		model.addAttribute("listLopHoc", listLopHoc);
 		model.addAttribute("listGiangVien", listGiangVien);
@@ -270,7 +270,8 @@ public class HocVienController {
 		Set<GiangVien> uniqueGiangViens = new HashSet<>();
 		for (LopHoc lopHoc : hocVien.getLopHocs()) {
 			System.out.println("Lớp học: " + lopHoc.getTenLop());
-			System.out.println("Số giảng viên trong lớp: " + (lopHoc.getListGiangVien() != null ? lopHoc.getListGiangVien().size() : 0));
+			System.out.println("Số giảng viên trong lớp: "
+					+ (lopHoc.getListGiangVien() != null ? lopHoc.getListGiangVien().size() : 0));
 			if (lopHoc.getListGiangVien() != null) {
 				for (GiangVien gv : lopHoc.getListGiangVien()) {
 					System.out.println("Giảng viên: " + gv.getHoTenGV() + " (ID: " + gv.getGiangVienID() + ")");
@@ -281,7 +282,8 @@ public class HocVienController {
 		List<GiangVien> listGiangVien = new ArrayList<>(uniqueGiangViens);
 		System.out.println("Tổng số giảng viên không trùng lặp: " + listGiangVien.size());
 		for (GiangVien gv : listGiangVien) {
-			System.out.println("Giảng viên sau khi loại bỏ trùng lặp: " + gv.getHoTenGV() + " (ID: " + gv.getGiangVienID() + ")");
+			System.out.println(
+					"Giảng viên sau khi loại bỏ trùng lặp: " + gv.getHoTenGV() + " (ID: " + gv.getGiangVienID() + ")");
 		}
 
 		model.addAttribute("hocVien", hocVien);
@@ -294,18 +296,10 @@ public class HocVienController {
 	@PostMapping("/cap_nhat")
 	public String getUpdateHocVien(@ModelAttribute("hocVien") HocVien hocVien,
 			@RequestParam("lopHocID") Integer lopHocID,
-			@RequestParam("giangVienChinhID") Integer giangVienChinhID,
 			RedirectAttributes redirectAttributes,
 			Authentication authentication, Model model) {
 		try {
 			String nguoiThucHien = authentication.getName();
-
-			// Get instructor info
-			GiangVien giangVienChinh = giangVienService.findByIDGV(giangVienChinhID);
-			if (giangVienChinh == null) {
-				model.addAttribute("error", "Không tìm thấy giảng viên");
-				return setupUpdatePage(hocVien.getHocVienID(), model, authentication);
-			}
 
 			// Get class info
 			LopHoc lopHocMoi = lopHocService.findByLopHocID(lopHocID);
@@ -341,13 +335,6 @@ public class HocVienController {
 				changes.append("Địa chỉ: ").append(hocVienHienTai.getDiaChi()).append(" → ").append(hocVien.getDiaChi())
 						.append("\n");
 			}
-			if (!Objects.equals(hocVienHienTai.getGiangVienChinh(), giangVienChinh)) {
-				changes.append("Giảng viên chính: ")
-						.append(hocVienHienTai.getGiangVienChinh() != null ? hocVienHienTai.getGiangVienChinh().getHoTenGV() : "Chưa có")
-						.append(" → ")
-						.append(giangVienChinh.getHoTenGV())
-						.append("\n");
-			}
 
 			// Update basic information
 			hocVienHienTai.setHoTen(hocVien.getHoTen());
@@ -359,7 +346,6 @@ public class HocVienController {
 			hocVienHienTai.setLichHoc(hocVien.getLichHoc());
 			hocVienHienTai.setLoaiXeDK(hocVien.getLoaiXeDK());
 			hocVienHienTai.setLoaiThucHanh(hocVien.getLoaiThucHanh());
-			hocVienHienTai.setGiangVienChinh(giangVienChinh);
 			hocVienHienTai.setGhiChu(hocVien.getGhiChu());
 
 			// Update class
@@ -382,6 +368,13 @@ public class HocVienController {
 				// Add new class
 				hocVienHienTai.addLopHoc(lopHocMoi);
 				changes.append("Thêm lớp học: ").append(lopHocMoi.getTenLop()).append("\n");
+
+				// Lấy giảng viên chính từ lớp học mới
+				if (lopHocMoi.getListGiangVien() != null && !lopHocMoi.getListGiangVien().isEmpty()) {
+					GiangVien giangVienChinh = lopHocMoi.getListGiangVien().get(0);
+					hocVienHienTai.setGiangVienChinh(giangVienChinh);
+					changes.append("Phân công giảng viên chính: ").append(giangVienChinh.getHoTenGV()).append("\n");
+				}
 
 				// Save instructor list of new class
 				List<GiangVien> newGiangViens = new ArrayList<>(lopHocMoi.getListGiangVien());
@@ -415,8 +408,10 @@ public class HocVienController {
 
 		List<Hang> listHang = hangService.findAll();
 		List<LopHoc> listLopHoc = lopHocService.findAllLopHoc();
+		List<GiangVien> listGiangVien = giangVienService.findAllGiangVien();
 		model.addAttribute("listHang", listHang);
 		model.addAttribute("listLopHoc", listLopHoc);
+		model.addAttribute("listGiangVien", listGiangVien);
 		model.addAttribute("hocVien", hocVienService.findByID(hocVienID));
 		model.addAttribute("listKhoaHoc", khoaHocService.findAllKhoaHoc());
 		model.addAttribute("listXe", xeService.findAllXe());
