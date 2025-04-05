@@ -336,17 +336,31 @@ public class DanhSachDKController {
 		}
 	}
 
-	// Xử lý yêu cầu GET để xóa học viên đăng ký
+//	// Xử lý yêu cầu GET để xóa học viên đăng ký
+//	@Transactional
+//	@PostMapping("/xoa/{id}")
+//	public String deleteHocVienDK(@PathVariable("id") Integer hocVienID, RedirectAttributes redirectAttributes,
+//			Authentication authentication) {
+//		try {
+//			// Call your service to delete the student
+//			dangKyService.deleteHocVienDK(hocVienID);
+//			redirectAttributes.addFlashAttribute("success", "Xoá học viên thành công!");
+//		} catch (Exception e) {
+//			redirectAttributes.addFlashAttribute("error", "Không thể xoá học viên. Vui lòng thử lại!");
+//		}
+//		return "redirect:/admin/danh_sach_dang_ky";
+//	}
+
 	@Transactional
-	@PostMapping("/xoa/{id}")
-	public String deleteHocVienDK(@PathVariable("id") Integer hocVienID, RedirectAttributes redirectAttributes,
+	@GetMapping("/delete/{id}")
+	public String deleteDangKy(@PathVariable("id") Integer id, RedirectAttributes redirectAttributes,
 			Authentication authentication) {
 		try {
-			// Call your service to delete the student
-			dangKyService.deleteHocVienDK(hocVienID);
-			redirectAttributes.addFlashAttribute("success", "Xoá học viên thành công!");
+			String nguoiThucHien = authentication.getName();
+			dangKyService.deleteDK(id, nguoiThucHien);
+			redirectAttributes.addFlashAttribute("success", "Xóa đăng ký thành công");
 		} catch (Exception e) {
-			redirectAttributes.addFlashAttribute("error", "Không thể xoá học viên. Vui lòng thử lại!");
+			redirectAttributes.addFlashAttribute("error", "Không thể xóa đăng ký: " + e.getMessage());
 		}
 		return "redirect:/admin/danh_sach_dang_ky";
 	}

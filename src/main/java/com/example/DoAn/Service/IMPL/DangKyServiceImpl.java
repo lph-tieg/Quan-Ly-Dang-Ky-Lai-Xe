@@ -11,12 +11,16 @@ import org.springframework.stereotype.Service;
 import com.example.DoAn.Model.DanhSachDangKy;
 import com.example.DoAn.Repository.DangKyRepository;
 import com.example.DoAn.Service.DangKyService;
+import com.example.DoAn.Service.LichSuHoatDongService;
 
 @Service
 public class DangKyServiceImpl implements DangKyService {
 
 	@Autowired
 	private DangKyRepository hocVienDKRepository;
+
+	@Autowired
+	private LichSuHoatDongService lichSuService;
 
 	// Tìm học viên đăng ký theo tên không phân biệt chữ hoa chữ thường.
 	@Override
@@ -72,8 +76,10 @@ public class DangKyServiceImpl implements DangKyService {
 	public void deleteHocVienDK(Integer hocVienDkId) {
 		// TODO Auto-generated method stub
 		DanhSachDangKy hocVienDK = hocVienDKRepository.findById(hocVienDkId).orElse(null);
+
 		if (hocVienDK != null)
 			hocVienDKRepository.deleteById(hocVienDkId);
+
 		;
 
 	}
@@ -97,6 +103,18 @@ public class DangKyServiceImpl implements DangKyService {
 	public List<DanhSachDangKy> findByEmailContaining(String email) {
 		// TODO Auto-generated method stub
 		return hocVienDKRepository.findByEmailContaining(email);
+	}
+
+	@Override
+	public void deleteDK(Integer hocVienDkId, String nguoiThucHien) {
+		// TODO Auto-generated method stub
+		// TODO Auto-generated method stub
+		DanhSachDangKy hocVienDK = hocVienDKRepository.findById(hocVienDkId).orElse(null);
+		String noiDung = "Xoá học viên đăng ký";
+		if (hocVienDK != null)
+			hocVienDKRepository.deleteById(hocVienDkId);
+		lichSuService.themLichSu(nguoiThucHien, "Xoá", "Người Đăng Ký", noiDung);
+		;
 	}
 
 }

@@ -29,6 +29,9 @@ public interface DangKyService {
 	// Xoá học viên đã đăng ký trong database
 	public void deleteHocVienDK(Integer hocVienDkId);
 
+	// Xoá học viên đã đăng ký trong database
+	public void deleteDK(Integer hocVienDkId, String nguoiThucHien);
+
 	// Tìm danh sách học viên đăng ký theo hạng và giảng viên đã chọn
 	public List<DanhSachDangKy> findByHangDKAndGVChinh(String hangDK, String GVChinh);
 
