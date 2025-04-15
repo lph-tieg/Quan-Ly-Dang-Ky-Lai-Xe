@@ -356,19 +356,16 @@ public class LopHocController {
 
 	// Xử lý Post cho xoá lớp học
 	@PostMapping("/delete/{id}")
-	@ResponseBody
-	public ResponseEntity<Map<String, Object>> deleteLopHoc(@PathVariable("id") Integer lopHocID,
-			Authentication authentication) {
-		Map<String, Object> response = new HashMap<>();
+	public String deleteLopHoc(@PathVariable("id") Integer lopHocID, Authentication authentication,
+			RedirectAttributes redirectAttributes) {
 		try {
 			String nguoiThucHien = authentication.getName();
 			lopHocService.deleteLop(lopHocID, nguoiThucHien);
-			response.put("success", true);
-			return ResponseEntity.ok(response);
+			redirectAttributes.addFlashAttribute("success", "Xóa lớp học thành công");
+			return "redirect:/admin/lop_hoc";
 		} catch (Exception e) {
-			response.put("success", false);
-			response.put("message", "Không thể xoá lớp học, hãy thử lại!");
-			return ResponseEntity.badRequest().body(response);
+			redirectAttributes.addFlashAttribute("error", "Không thể xóa lớp học, hãy thử lại!");
+			return "redirect:/admin/lop_hoc";
 		}
 	}
 

@@ -103,6 +103,15 @@ public class HocVien {
 	@JoinColumn(name = "giangVienPhuID")
 	private GiangVien giangVienPhu; // Mối quan hệ với giảng viên phụ
 
+	@Column(name = "TrangThai")
+	private String trangThai; // Đang học / Đã hoàn thành
+
+	@Column(name = "ThoiGianHoc")
+	private Integer thoiGianHoc; // Tổng thời gian học của hạng (giờ)
+
+	@Column(name = "ThoiGianDaHoc")
+	private Double thoiGianDaHoc; // Thời gian đã học (giờ)
+
 	public Hang getHang() {
 		return hang;
 	}
@@ -291,6 +300,30 @@ public class HocVien {
 
 	public void setBuoiHoc(String buoiHoc) {
 		this.buoiHoc = buoiHoc;
+	}
+
+	public String getTrangThai() {
+		return trangThai;
+	}
+
+	public void setTrangThai(String trangThai) {
+		this.trangThai = trangThai;
+	}
+
+	public Integer getThoiGianHoc() {
+		return thoiGianHoc;
+	}
+
+	public void setThoiGianHoc(Integer thoiGianHoc) {
+		this.thoiGianHoc = thoiGianHoc;
+	}
+
+	public Double getThoiGianDaHoc() {
+		return thoiGianDaHoc;
+	}
+
+	public void setThoiGianDaHoc(Double thoiGianDaHoc) {
+		this.thoiGianDaHoc = thoiGianDaHoc;
 	}
 
 	@Override

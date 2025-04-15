@@ -116,6 +116,48 @@
 		        </select>
 		    </div>
 		
+		    <!-- Thêm trường chọn thời lượng học -->
+		    <div class="mb-3">
+		        <label for="thoiLuongHoc" class="form-label">Thời lượng học (giờ)</label>
+		        <select class="form-select" id="thoiLuongHoc" name="thoiLuongHoc" required>
+		            <option value="">Chọn thời lượng học</option>
+		            <optgroup label="Hạng A1, A2">
+						<option value="35" th:selected="${lopHoc.thoiLuongHoc == 35}">35 giờ</option>	
+					</optgroup>
+					<optgroup label="Hạng B1">
+						<option value="102" th:selected="${lopHoc.thoiLuongHoc == 102}">102 giờ</option>	
+					</optgroup>
+					<optgroup label="Hạng B2">
+						<option value="136" th:selected="${lopHoc.thoiLuongHoc == 136}">136 giờ</option>	
+					</optgroup>
+					<optgroup label="Hạng C">
+						<option value="180" th:selected="${lopHoc.thoiLuongHoc == 180}">180 giờ</option>	
+					</optgroup>
+					<optgroup label="Hạng D">
+						<option value="224" th:selected="${lopHoc.thoiLuongHoc == 224}">224 giờ</option>	
+					</optgroup>
+					<optgroup label="Hạng E">
+						<option value="268" th:selected="${lopHoc.thoiLuongHoc == 268}">268 giờ</option>	
+					</optgroup>
+					<optgroup label="Hạng FB1">
+						<option value="44" th:selected="${lopHoc.thoiLuongHoc == 44}">44 giờ</option>	
+					</optgroup>
+					<optgroup label="Hạng FC">
+						<option value="146" th:selected="${lopHoc.thoiLuongHoc == 146}">146 giờ</option>	
+					</optgroup>
+					<optgroup label="Hạng FD">
+						<option value="180" th:selected="${lopHoc.thoiLuongHoc == 180}">180 giờ</option>	
+					</optgroup>
+					<optgroup label="Hạng FE">
+						<option value="224" th:selected="${lopHoc.thoiLuongHoc == 224}">224 giờ</option>	
+					</optgroup>
+
+		        </select>
+		        <div class="invalid-feedback">
+		            Vui lòng chọn thời lượng học
+		        </div>
+		    </div>
+		
 		    <div class="btn-update-lop-hoc text-center mt-4">
 		        <button type="submit" class="btn btn-primary" th:text="${isEdit ? 'Cập Nhật' : 'Thêm Mới'}"></button>
 		        <a th:href="@{/admin/lop_hoc}" class="btn btn-secondary">Quay lại danh sách</a>

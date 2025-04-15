@@ -40,6 +40,9 @@ public class LopHoc {
 	@Column(name = "soLuong")
 	private Long soLuong = 0L;
 
+	@Column(name = "thoiLuongHoc")
+	private Integer thoiLuongHoc;
+
 	@ManyToMany(mappedBy = "lopHocs")
 	private List<HocVien> hocViens = new ArrayList<>();
 
@@ -125,6 +128,14 @@ public class LopHoc {
 
 	public void setKhoaHoc(KhoaHoc khoaHoc) {
 		this.khoaHoc = khoaHoc;
+	}
+
+	public Integer getThoiLuongHoc() {
+		return thoiLuongHoc;
+	}
+
+	public void setThoiLuongHoc(Integer thoiLuongHoc) {
+		this.thoiLuongHoc = thoiLuongHoc;
 	}
 
 	public void tangSoLuong() {

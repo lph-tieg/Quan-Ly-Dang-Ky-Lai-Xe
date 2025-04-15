@@ -102,4 +102,5 @@ public interface HocVienService {
 	// Tìm học viên chưa có trong lớp học
 	List<HocVien> findHocVienNotInLopHoc(Integer lopHocID);
 
+	public void updateThoiGian(Integer hocVienID, Double thoiGianDaHoc, String nguoiThucHien);
 }

@@ -85,4 +85,8 @@ public interface HocVienRepository extends JpaRepository<HocVien, Integer> {
 
 	// Kiểm tra sdt đã tồn tại hay chưa nhưng loại bỏ học viên có ID
 	boolean existsBySdtAndHocVienIDNot(String sdt, Integer hocVienID);
+
+	@Query("UPDATE HocVien h SET h.thoiGianDaHoc = :thoiGianDaHoc, h.trangThai = :trangThai WHERE h.hocVienID = :id")
+	public void updateThoiGianHoc(@Param("id") Integer hocVienID, @Param("thoiGianDaHoc") Integer thoiGianDaHoc,
+			@Param("trangThai") String trangThai);
 }

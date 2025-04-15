@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head th:replace="format/layout :: head">
+<head th:replace="format/layout :: head ">
 </head>
 
 <body>
@@ -66,6 +66,7 @@
                                 <th scope="col">Buổi Học</th>
                                 <th scope="col">Hạng</th>
                                 <th scope="col">Số Lượng</th>
+                                <th scope="col">Thời Lượng Học</th>
                                 <th scope="col">Giảng viên</th>
                                 <th scope="col"></th>
                                 
@@ -80,7 +81,7 @@
 							    <td th:text="${lopHoc.tenLop}"></td>
 							    <td th:text="${lopHoc.lichHoc}"></td>
 							    <td th:text="${lopHoc.buoiHoc}"></td>
-							    <td th:text="${lopHoc.hang}"></td>
+							    <td th:text="${lopHoc.hang.tenHang}"></td>
 							    <td >
 							    	 <span th:text="${lopHoc.soLuong}"></span>
 				                        <a th:href="@{/admin/lop_hoc/{id}/danh_sach(id=${lopHoc.lopHocID})}" 
@@ -90,6 +91,7 @@
 				                        </a>
 							    </td>
 							    
+							    <td th:text="${lopHoc.thoiLuongHoc} + ' giờ'"></td>
 								 <td>
 								    <div style="max-height: 100px; overflow-y: auto;">
 								        <ul class="list-unstyled mb-0">
@@ -169,10 +171,7 @@
                 confirmButtonColor: '#28a745',
                 cancelButtonColor: '#6c757d',
                 confirmButtonText: 'Đồng ý',
-                cancelButtonText: 'Hủy',
-                customClass: {
-                    popup: 'custom-popup-class'
-                }
+                cancelButtonText: 'Hủy'
             }).then((result) => {
                 if (result.isConfirmed) {
                     form.submit();
@@ -182,46 +181,88 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-        const message = /*[[${message}]]*/ null;
-        const error = /*[[${error}]]*/ null;
-        const success = /*[[${success}]]*/ null;
+            const message = document.querySelector('[data-type="message"]');
+            const error = document.querySelector('[data-type="error"]');
+            const success = document.querySelector('[data-type="success"]');
 
-        if (success) {
-            Swal.fire({
-                title: 'Thành công!',
-                text: success,
-                icon: 'success',                
-                confirmButtonText: 'Đóng',
-                confirmButtonColor: '#198754'
-            });
-        }
-        
-        if (message) {
-            Swal.fire({
-                title: 'Thông Báo!',
-                text: message,
-                icon: 'info',              
-                confirmButtonText: 'Đóng',
-                confirmButtonColor: '#0d6efd',  // Bootstrap primary color
-                customClass: {
-                    icon: 'swal2-icon-blue'
-                }
-            });
-        }
+            if (success) {
+                Swal.fire({
+                    title: 'Thành công!',
+                    text: success.dataset.message,
+                    icon: 'success',
+                    confirmButtonText: 'Đóng',
+                    confirmButtonColor: '#198754'
+                });
+            }
+            
+            if (message) {
+                Swal.fire({
+                    title: 'Thông Báo!',
+                    text: message.dataset.message,
+                    icon: 'info',
+                    confirmButtonText: 'Đóng',
+                    confirmButtonColor: '#0d6efd'
+                });
+            }
 
-        if (error) {
-            Swal.fire({
-                title: 'Lỗi!',
-                text: error,
-                icon: 'error',
-                showCancelButton: true,
-                confirmButtonText: 'Đồng ý',
-                cancelButtonText: 'Huỷ',
-                confirmButtonColor: '#dc3545',
-                cancelButtonColor: '#6c757d'
-            });
-        }
-    });
+            if (error) {
+                Swal.fire({
+                    title: 'Lỗi!',
+                    text: error.dataset.message,
+                    icon: 'error',
+                    confirmButtonText: 'Đóng',
+                    confirmButtonColor: '#dc3545'
+                });
+            }
+
+            // Xử lý form cập nhật
+            const updateForm = document.querySelector('form[action*="/update"]');
+            if (updateForm) {
+                updateForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const formData = new FormData(this);
+                    
+                    fetch(this.action, {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => {
+                        if (response.redirected) {
+                            window.location.href = response.url;
+                        } else {
+                            return response.text();
+                        }
+                    })
+                    .then(data => {
+                        if (data) {
+                            const parser = new DOMParser();
+                            const doc = parser.parseFromString(data, 'text/html');
+                            const errorMessage = doc.querySelector('[data-type="error"]');
+                            
+                            if (errorMessage) {
+                                Swal.fire({
+                                    title: 'Lỗi!',
+                                    text: errorMessage.dataset.message,
+                                    icon: 'error',
+                                    confirmButtonText: 'Đóng',
+                                    confirmButtonColor: '#dc3545'
+                                });
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire({
+                            title: 'Lỗi!',
+                            text: 'Đã xảy ra lỗi khi cập nhật lớp học',
+                            icon: 'error',
+                            confirmButtonText: 'Đóng',
+                            confirmButtonColor: '#dc3545'
+                        });
+                    });
+                });
+            }
+        });
     </script>
 
    

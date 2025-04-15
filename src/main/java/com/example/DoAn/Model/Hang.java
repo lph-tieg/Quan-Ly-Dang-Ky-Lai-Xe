@@ -22,10 +22,17 @@ import lombok.NoArgsConstructor;
 public class Hang {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "HangID")
 	private Integer hangID;
 
-	@Column(name = "tenHang")
+	@Column(name = "TenHang")
 	private String tenHang;
+
+	@Column(name = "CapBac")
+	private Integer capBac;
+
+	@Column(name = "ThoiGianHoc")
+	private Integer thoiGianHoc; // Thời gian học tính bằng giờ
 
 //	@ManyToOne
 //	@JoinColumn(name = "khoaHoc_id")
@@ -71,6 +78,22 @@ public class Hang {
 
 	public void setTenHang(String tenHang) {
 		this.tenHang = tenHang;
+	}
+
+	public Integer getCapBac() {
+		return capBac;
+	}
+
+	public void setCapBac(Integer capBac) {
+		this.capBac = capBac;
+	}
+
+	public Integer getThoiGianHoc() {
+		return thoiGianHoc;
+	}
+
+	public void setThoiGianHoc(Integer thoiGianHoc) {
+		this.thoiGianHoc = thoiGianHoc;
 	}
 
 //	public KhoaHoc getKhoaHoc() {

@@ -3,6 +3,7 @@ package com.example.DoAn.Controller;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -12,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,6 +27,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.example.DoAn.Model.AdminAccount;
@@ -31,6 +35,7 @@ import com.example.DoAn.Model.GiangVien;
 import com.example.DoAn.Model.Hang;
 import com.example.DoAn.Model.HocVien;
 import com.example.DoAn.Model.LopHoc;
+import com.example.DoAn.Model.XeTapLai;
 import com.example.DoAn.Service.AdminService;
 import com.example.DoAn.Service.DangKyService;
 import com.example.DoAn.Service.GiangVienService;
@@ -215,6 +220,25 @@ public class HocVienController {
 			model.addAttribute("totalPage", listHocVien.getTotalPages());
 			model.addAttribute("keyword", keyWord);
 
+			// Cập nhật thời gian học và trạng thái cho mỗi học viên
+			for (HocVien hocVien : listHocVien.getContent()) {
+				// Lấy thời gian học từ hạng của học viên
+				if (hocVien.getHang() != null) {
+					hocVien.setThoiGianHoc(hocVien.getHang().getThoiGianHoc());
+				}
+
+				// Cập nhật trạng thái dựa trên thời gian đã học
+				if (hocVien.getThoiGianDaHoc() != null && hocVien.getThoiGianHoc() != null) {
+					if (hocVien.getThoiGianDaHoc() >= hocVien.getThoiGianHoc()) {
+						hocVien.setTrangThai("Đã hoàn thành");
+					} else {
+						hocVien.setTrangThai("Đang học");
+					}
+				} else {
+					hocVien.setTrangThai("Chưa bắt đầu");
+				}
+			}
+
 			return "admin/hocVien/hocVien";
 		} catch (Exception e) {
 			model.addAttribute("error", "Đã xảy ra lỗi khi tải danh sách học viên: " + e.getMessage());
@@ -295,8 +319,7 @@ public class HocVienController {
 	@Transactional
 	@PostMapping("/cap_nhat")
 	public String getUpdateHocVien(@ModelAttribute("hocVien") HocVien hocVien,
-			@RequestParam("lopHocID") Integer lopHocID,
-			RedirectAttributes redirectAttributes,
+			@RequestParam("lopHocID") Integer lopHocID, RedirectAttributes redirectAttributes,
 			Authentication authentication, Model model) {
 		try {
 			String nguoiThucHien = authentication.getName();
@@ -314,6 +337,10 @@ public class HocVienController {
 				model.addAttribute("error", "Không tìm thấy thông tin học viên");
 				return setupUpdatePage(hocVien.getHocVienID(), model, authentication);
 			}
+
+			// Lưu thời gian học và trạng thái hiện tại
+			Double thoiGianDaHoc = hocVienHienTai.getThoiGianDaHoc();
+			String trangThai = hocVienHienTai.getTrangThai();
 
 			// Create StringBuilder to track changes
 			StringBuilder changes = new StringBuilder();
@@ -384,7 +411,14 @@ public class HocVienController {
 				// Update student count for new class
 				lopHocMoi.capNhatSoLuong();
 				lopHocService.updateLopHoc(lopHocMoi, newGiangVienIds, nguoiThucHien);
+
+				// Cập nhật thời gian học từ lớp học mới
+				hocVienHienTai.setThoiGianHoc(lopHocMoi.getThoiLuongHoc());
 			}
+
+			// Khôi phục thời gian đã học và trạng thái
+			hocVienHienTai.setThoiGianDaHoc(thoiGianDaHoc);
+			hocVienHienTai.setTrangThai(trangThai);
 
 			// Save changes
 			hocVienService.updateHocVien(hocVienHienTai, nguoiThucHien);
@@ -394,6 +428,81 @@ public class HocVienController {
 		} catch (Exception e) {
 			redirectAttributes.addFlashAttribute("error", "Lỗi khi cập nhật học viên: " + e.getMessage());
 			return "redirect:/admin/hoc_vien";
+		}
+	}
+
+	@PostMapping("/xac_nhan_hoan_thanh/{id}")
+	@ResponseBody
+	@Transactional
+	public ResponseEntity<?> xacNhanHoanThanh(@PathVariable("id") Integer hocVienID, Authentication authentication) {
+		try {
+			HocVien hocVien = hocVienService.findByID(hocVienID);
+			if (hocVien == null) {
+				return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Không tìm thấy học viên"));
+			}
+
+			// Kiểm tra điều kiện hoàn thành
+			if (!"Đủ điều kiện thi".equals(hocVien.getTrangThai())) {
+				return ResponseEntity.badRequest()
+						.body(Map.of("success", false, "message", "Học viên chưa đủ điều kiện thi"));
+			}
+
+			// Tạo nội dung chi tiết cho lịch sử
+			StringBuilder chiTiet = new StringBuilder();
+			chiTiet.append("Học viên: ").append(hocVien.getHoTen()).append("\nMã học viên: ")
+					.append(hocVien.getHocVienID()).append("\nHạng đăng ký: ").append(hocVien.getHangDK())
+					.append("\nXe đăng ký: ").append(hocVien.getLoaiXeDK()).append("\nLớp học: ");
+
+			// Thêm thông tin về các lớp học
+			for (LopHoc lopHoc : hocVien.getLopHocs()) {
+				chiTiet.append("\n- ").append(lopHoc.getTenLop()).append(" (Thời gian học: ")
+						.append(lopHoc.getThoiLuongHoc()).append(" giờ)");
+
+				// Thêm thông tin giảng viên của lớp
+				if (lopHoc.getListGiangVien() != null && !lopHoc.getListGiangVien().isEmpty()) {
+					chiTiet.append("\n  Giảng viên: ");
+					for (GiangVien gv : lopHoc.getListGiangVien()) {
+						chiTiet.append(gv.getHoTenGV()).append(", ");
+					}
+					// Xóa dấu phẩy cuối cùng
+					chiTiet.setLength(chiTiet.length() - 2);
+				}
+			}
+
+			chiTiet.append("\nThời gian đã học: ").append(hocVien.getThoiGianDaHoc()).append(" giờ");
+
+			// Cập nhật số lượng học viên trong các lớp học
+			for (LopHoc lopHoc : hocVien.getLopHocs()) {
+				lopHoc.giamSoLuong();
+				lopHocService.updateLopHoc(lopHoc,
+						lopHoc.getListGiangVien().stream().map(GiangVien::getGiangVienID).collect(Collectors.toList()),
+						authentication.getName());
+			}
+
+			// Cập nhật số lượng xe còn lại
+			if (hocVien.getLoaiXeDK() != null) {
+				List<XeTapLai> xeList = xeService.findAllXe();
+				for (XeTapLai xe : xeList) {
+					if (xe.getTenXe().equals(hocVien.getLoaiXeDK())) {
+						xe.setSoLuongConLai(xe.getSoLuongConLai() + 1);
+						xeService.updateSoLuongXe(xe);
+						break;
+					}
+				}
+			}
+
+			// Xóa học viên khỏi danh sách học viên hiện tại
+			hocVienService.deleteHocVien(hocVienID);
+
+			// Ghi log với chi tiết đầy đủ
+			lichSuService.themLichSu(authentication.getName(), "Xác nhận hoàn thành", "Học Viên", chiTiet.toString());
+
+			return ResponseEntity.ok(
+					Map.of("success", true, "message", "Học viên " + hocVien.getHoTen() + " đã hoàn thành khóa học"));
+		} catch (Exception e) {
+			e.printStackTrace(); // Log lỗi để debug
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(Map.of("success", false, "message", "Lỗi khi xác nhận hoàn thành: " + e.getMessage()));
 		}
 	}
 
@@ -426,12 +535,90 @@ public class HocVienController {
 			Authentication authentication) {
 		try {
 			String nguoiThucHien = authentication.getName();
-			hocVienService.deleteHocVienByID(hocVienID, nguoiThucHien);
-			redirectAttributes.addFlashAttribute("success", "Xóa học viên thành công");
+
+			// Lấy thông tin học viên trước khi xóa
+			HocVien hocVien = hocVienService.findByID(hocVienID);
+			if (hocVien != null) {
+				// Cập nhật số lượng xe còn lại
+				if (hocVien.getLoaiXeDK() != null) {
+					List<XeTapLai> xeList = xeService.findAllXe();
+					for (XeTapLai xe : xeList) {
+						if (xe.getTenXe().equals(hocVien.getLoaiXeDK())) {
+							xe.setSoLuongConLai(xe.getSoLuongConLai() + 1);
+							xeService.updateXe(xe, nguoiThucHien);
+							break;
+						}
+					}
+				}
+
+				// Cập nhật số lượng học viên trong các lớp học
+				List<LopHoc> lopHocList = new ArrayList<>(hocVien.getLopHocs());
+				for (LopHoc lopHoc : lopHocList) {
+					// Xóa học viên khỏi danh sách của lớp
+					hocVien.removeLopHoc(lopHoc);
+					// Cập nhật số lượng học viên trong lớp
+					lopHoc.capNhatSoLuong();
+					// Cập nhật thông tin lớp học vào database
+					lopHocService.updateLopHoc(lopHoc, lopHoc.getListGiangVien().stream().map(GiangVien::getGiangVienID)
+							.collect(Collectors.toList()), nguoiThucHien);
+				}
+
+				// Xóa học viên
+				hocVienService.deleteHocVienByID(hocVienID, nguoiThucHien);
+				redirectAttributes.addFlashAttribute("success", "Xóa học viên thành công");
+			} else {
+				redirectAttributes.addFlashAttribute("error", "Không tìm thấy học viên");
+			}
 		} catch (Exception e) {
+			e.printStackTrace(); // Log lỗi để debug
 			redirectAttributes.addFlashAttribute("error", "Không thể xóa học viên: " + e.getMessage());
 		}
 		return "redirect:/admin/hoc_vien";
+	}
+
+	@PostMapping("/cap_nhat_thoi_gian/{id}")
+	@ResponseBody
+	@Transactional
+	public ResponseEntity<?> capNhatThoiGianHoc(@PathVariable("id") Integer hocVienID,
+			@RequestParam("time") Double thoiGianDaHoc, Authentication authentication) {
+		try {
+			HocVien hocVien = hocVienService.findByID(hocVienID);
+			if (hocVien == null) {
+				return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Không tìm thấy học viên"));
+			}
+
+			// Lấy thời gian học từ lớp học
+			Integer thoiGianHoc = null;
+			if (!hocVien.getLopHocs().isEmpty()) {
+				LopHoc lopHoc = hocVien.getLopHocs().get(0);
+				thoiGianHoc = lopHoc.getThoiLuongHoc();
+			}
+
+			if (thoiGianHoc == null) {
+				return ResponseEntity.badRequest()
+						.body(Map.of("success", false, "message", "Không tìm thấy thời gian học"));
+			}
+
+			// Cập nhật thời gian đã học
+			hocVien.setThoiGianDaHoc(thoiGianDaHoc);
+
+			// Cập nhật trạng thái dựa trên thời gian học
+			if (thoiGianDaHoc >= thoiGianHoc) {
+				hocVien.setTrangThai("Đủ điều kiện thi");
+			} else {
+				hocVien.setTrangThai("Đang học");
+			}
+
+			// Lưu vào cơ sở dữ liệu
+			hocVienService.updateHocVien(hocVien, authentication.getName());
+
+			return ResponseEntity.ok(Map.of("success", true, "trangThai", hocVien.getTrangThai(), "thoiGianDaHoc",
+					hocVien.getThoiGianDaHoc(), "thoiGianHoc", thoiGianHoc));
+		} catch (Exception e) {
+			e.printStackTrace(); // Log lỗi để debug
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(Map.of("success", false, "message", "Lỗi server: " + e.getMessage()));
+		}
 	}
 
 }

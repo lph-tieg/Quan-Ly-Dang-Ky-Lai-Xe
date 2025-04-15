@@ -340,4 +340,27 @@ public class HocVienServiceImp implements HocVienService {
 		}
 	}
 
+	@Override
+	@Transactional
+	public void updateThoiGian(Integer hocVienID, Double thoiGianDaHoc, String nguoiThucHien) {
+		HocVien hocVien = hocVienRepo.findById(hocVienID)
+				.orElseThrow(() -> new RuntimeException("Không tìm thấy học viên"));
+
+		// Cập nhật thời gian đã học
+		hocVien.setThoiGianDaHoc(thoiGianDaHoc);
+
+		// Cập nhật trạng thái nếu cần
+		if (thoiGianDaHoc >= hocVien.getThoiGianHoc()) {
+			hocVien.setTrangThai("Đã hoàn thành");
+		} else {
+			hocVien.setTrangThai("Đang học");
+		}
+
+		// Lưu vào cơ sở dữ liệu
+		hocVienRepo.save(hocVien);
+		String noiDung = "Thời gian đã học: " + thoiGianDaHoc + " giờ";
+		// Ghi log
+		lichSuService.themLichSu(nguoiThucHien, "Cập nhật thời gian học", "Học Viên", noiDung);
+	}
+
 }

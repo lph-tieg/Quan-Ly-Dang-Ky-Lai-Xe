@@ -1,9 +1,7 @@
 package com.example.DoAn.Service.IMPL;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -257,19 +255,15 @@ public class LopHocServiceImpl implements LopHocService {
 	 * hoạt động
 	 */
 	@Override
-	@Transactional(rollbackFor = Exception.class)
+	@Transactional(noRollbackFor = { IllegalArgumentException.class, RuntimeException.class })
 	public void updateLopHoc(LopHoc lopHoc, List<Integer> giangVienMoiID, String nguoiThucHien) {
 		try {
 			if (lopHoc == null || lopHoc.getLopHocID() == null) {
 				throw new IllegalArgumentException("Thông tin lớp học không hợp lệ");
 			}
 
-			Optional<LopHoc> lopHocOptional = lopHocRepository.findById(lopHoc.getLopHocID());
-			if (lopHocOptional.isEmpty()) {
-				throw new RuntimeException("Lớp học không tồn tại");
-			}
-
-			LopHoc lopHocHienTai = lopHocOptional.get();
+			LopHoc lopHocHienTai = lopHocRepository.findById(lopHoc.getLopHocID())
+					.orElseThrow(() -> new RuntimeException("Lớp học không tồn tại"));
 
 			// Kiểm tra tên lớp mới
 			if (!lopHocHienTai.getTenLop().equals(lopHoc.getTenLop()) && existsByTenLop(lopHoc.getTenLop())) {
@@ -278,12 +272,27 @@ public class LopHocServiceImpl implements LopHocService {
 
 			List<String> changes = new ArrayList<>();
 
-			// Ghi nhận các thay đổi cơ bản
-			if (!lopHocHienTai.getHang().getTenHang().equals(lopHoc.getHang().getTenHang())) {
+			// Xử lý thay đổi hạng
+			if (!lopHocHienTai.getHang().getHangID().equals(lopHoc.getHang().getHangID())) {
+				// Tìm các giảng viên không đủ hạng
+				List<GiangVien> giangVienKhongDuHang = lopHocHienTai.getListGiangVien().stream()
+						.filter(gv -> gv.getHang().getCapBac() < lopHoc.getHang().getCapBac())
+						.collect(Collectors.toList());
+
+				if (!giangVienKhongDuHang.isEmpty()) {
+					String danhSachGV = giangVienKhongDuHang.stream()
+							.map(gv -> gv.getHoTenGV() + " (Hạng " + gv.getHang().getTenHang() + ")")
+							.collect(Collectors.joining(", "));
+
+					throw new RuntimeException(
+							"Không thể cập nhật hạng lớp vì các giảng viên sau có hạng thấp hơn: " + danhSachGV);
+				}
+
 				changes.add(String.format("thay đổi hạng từ %s sang %s", lopHocHienTai.getHang().getTenHang(),
 						lopHoc.getHang().getTenHang()));
 			}
 
+			// Ghi nhận các thay đổi khác
 			if (!lopHocHienTai.getLichHoc().equals(lopHoc.getLichHoc())) {
 				changes.add(String.format("thay đổi lịch học từ %s sang %s", lopHocHienTai.getLichHoc(),
 						lopHoc.getLichHoc()));
@@ -294,106 +303,94 @@ public class LopHocServiceImpl implements LopHocService {
 						lopHoc.getBuoiHoc()));
 			}
 
-			// Cập nhật tất cả các trường thông tin, ngoại trừ số lượng học viên
+			// Cập nhật thông tin cơ bản
 			lopHocHienTai.setTenLop(lopHoc.getTenLop());
 			lopHocHienTai.setLichHoc(lopHoc.getLichHoc());
 			lopHocHienTai.setBuoiHoc(lopHoc.getBuoiHoc());
 			lopHocHienTai.setHang(lopHoc.getHang());
 			lopHocHienTai.setKhoaHoc(lopHoc.getKhoaHoc());
+			lopHocHienTai.setThoiLuongHoc(lopHoc.getThoiLuongHoc());
 
-			// Cập nhật danh sách giảng viên
+			// Xử lý danh sách giảng viên mới (nếu có)
 			List<GiangVien> giangVienMoi = new ArrayList<>();
 			if (giangVienMoiID != null && !giangVienMoiID.isEmpty()) {
 				giangVienMoi = giangVienService.findAllByID(giangVienMoiID);
+
 				// Kiểm tra hạng của giảng viên mới
-				for (GiangVien giangVien : giangVienMoi) {
-					if (giangVien.getHang().getHangID() < lopHoc.getHang().getHangID()) {
-						throw new RuntimeException(
-								"Giảng viên " + giangVien.getHoTenGV() + " không đủ hạng để dạy lớp này (Yêu cầu hạng "
-										+ lopHoc.getHang().getTenHang() + " hoặc cao hơn)");
-					}
+				List<GiangVien> giangVienMoiKhongDuHang = giangVienMoi.stream()
+						.filter(gv -> gv.getHang().getCapBac() < lopHoc.getHang().getCapBac())
+						.collect(Collectors.toList());
+
+				if (!giangVienMoiKhongDuHang.isEmpty()) {
+					String danhSachGV = giangVienMoiKhongDuHang.stream().map(gv -> gv.getHoTenGV() + " (Hạng "
+							+ gv.getHang().getTenHang() + " - Cấp bậc " + gv.getHang().getCapBac() + ")")
+							.collect(Collectors.joining(", "));
+					throw new RuntimeException("Không thể thêm các giảng viên sau vì có hạng thấp hơn hạng lớp "
+							+ lopHoc.getHang().getTenHang() + " (Cấp bậc " + lopHoc.getHang().getCapBac() + "): "
+							+ danhSachGV);
 				}
 			}
 
-			// Tìm giảng viên bị xóa
+			// Xử lý thay đổi giảng viên
 			List<GiangVien> giangVienBiXoa = new ArrayList<>(lopHocHienTai.getListGiangVien());
 			giangVienBiXoa.removeAll(giangVienMoi);
 
-			// Tìm giảng viên được thêm mới
 			List<GiangVien> giangVienDuocThem = new ArrayList<>(giangVienMoi);
 			giangVienDuocThem.removeAll(lopHocHienTai.getListGiangVien());
 
-			// Xóa mối quan hệ với tất cả giảng viên hiện tại
-			for (GiangVien giangVien : lopHocHienTai.getListGiangVien()) {
-				giangVien.getLopHocs().remove(lopHocHienTai);
+			// Xóa mối quan hệ với giảng viên cũ
+			for (GiangVien gv : giangVienBiXoa) {
+				gv.getLopHocs().remove(lopHocHienTai);
+				giangVienService.updateGiangVien(gv, nguoiThucHien);
 			}
+
+			// Thêm mối quan hệ với giảng viên mới
+			for (GiangVien gv : giangVienDuocThem) {
+				gv.getLopHocs().add(lopHocHienTai);
+				giangVienService.updateGiangVien(gv, nguoiThucHien);
+			}
+
+			// Cập nhật danh sách giảng viên của lớp
 			lopHocHienTai.getListGiangVien().clear();
+			lopHocHienTai.getListGiangVien().addAll(giangVienMoi);
 
-			// Thêm các giảng viên mới (nếu có)
-			for (GiangVien giangVien : giangVienMoi) {
-				giangVien.getLopHocs().add(lopHocHienTai);
-			}
-			lopHocHienTai.setListGiangVien(giangVienMoi);
+			// Lưu lớp học
+			lopHocRepository.save(lopHocHienTai);
 
-			// Ghi log thay đổi giảng viên chi tiết
+			// Ghi log thay đổi giảng viên
 			if (!giangVienBiXoa.isEmpty() || !giangVienDuocThem.isEmpty()) {
 				StringBuilder gvChanges = new StringBuilder();
 
 				if (!giangVienDuocThem.isEmpty()) {
 					gvChanges.append("thêm GV ");
-					List<String> gvMoi = new ArrayList<>();
-					for (GiangVien gv : giangVienDuocThem) {
-						gvMoi.add(gv.getHoTenGV() + "-" + gv.getHang().getTenHang());
-					}
-					gvChanges.append(String.join(", ", gvMoi));
+					gvChanges.append(
+							giangVienDuocThem.stream().map(gv -> gv.getHoTenGV() + "-" + gv.getHang().getTenHang())
+									.collect(Collectors.joining(", ")));
 				}
 
 				if (!giangVienBiXoa.isEmpty()) {
-					if (gvChanges.length() > 0)
+					if (gvChanges.length() > 0) {
 						gvChanges.append("; ");
-					gvChanges.append("xóa GV ");
-					List<String> gvXoa = new ArrayList<>();
-					for (GiangVien gv : giangVienBiXoa) {
-						gvXoa.add(gv.getHoTenGV() + "-" + gv.getHang().getTenHang());
 					}
-					gvChanges.append(String.join(", ", gvXoa));
+					gvChanges.append("xóa GV ");
+					gvChanges
+							.append(giangVienBiXoa.stream().map(gv -> gv.getHoTenGV() + "-" + gv.getHang().getTenHang())
+									.collect(Collectors.joining(", ")));
 				}
 
 				changes.add(gvChanges.toString());
 			}
 
-			// Lưu vào database
-			lopHocRepository.save(lopHocHienTai);
-
-			// Ghi log nếu có thay đổi
+			// Ghi log các thay đổi
 			if (!changes.isEmpty()) {
-				Map<String, List<String>> groupedChanges = new HashMap<>();
-
-				// Nhóm các thay đổi theo loại
-				for (String change : changes) {
-					String type = getChangeType(change);
-					if (!groupedChanges.containsKey(type)) {
-						groupedChanges.put(type, new ArrayList<>());
+				String noiDung = "Lớp " + lopHoc.getTenLop() + ": " + String.join("; ", changes);
+				if (noiDung.length() > 255) {
+					List<String> splitEntries = splitLogEntry(noiDung);
+					for (String entry : splitEntries) {
+						lichSuService.themLichSu(nguoiThucHien, "Cập Nhật", "Lớp Học", entry);
 					}
-					groupedChanges.get(type).add(change);
-				}
-
-				// Ghi log cho từng nhóm thay đổi
-				for (List<String> changeGroup : groupedChanges.values()) {
-					StringBuilder logEntry = new StringBuilder();
-					logEntry.append("Lớp ").append(lopHoc.getTenLop()).append(": ");
-					logEntry.append(String.join("; ", changeGroup));
-
-					String noiDung = logEntry.toString();
-					if (noiDung.length() > 255) {
-						// Nếu nội dung quá dài, tách thành nhiều bản ghi
-						List<String> splitEntries = splitLogEntry(noiDung);
-						for (String entry : splitEntries) {
-							lichSuService.themLichSu(nguoiThucHien, "Cập Nhật", "Lớp Học", entry);
-						}
-					} else {
-						lichSuService.themLichSu(nguoiThucHien, "Cập Nhật", "Lớp Học", noiDung);
-					}
+				} else {
+					lichSuService.themLichSu(nguoiThucHien, "Cập Nhật", "Lớp Học", noiDung);
 				}
 			}
 		} catch (Exception e) {

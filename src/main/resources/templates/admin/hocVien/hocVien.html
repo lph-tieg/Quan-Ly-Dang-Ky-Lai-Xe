@@ -38,7 +38,7 @@
             <div th:replace="format/headerAdmin :: headerAdmin"></div>
 
             <section class="content-hoc-vien mt-5">
-                <div class="hoc-vien-admin container">
+                <div class="hoc-vien-admin container" style="max-width: 1546px;">
                     <!-- Xóa các alert cũ -->
                     <div th:if="${message}" th:data-message="${message}" th:data-type="success" style="display: none;"></div>
                     <div th:if="${error}" th:data-message="${error}" th:data-type="error" style="display: none;"></div>
@@ -96,17 +96,21 @@
                                 <th scope="col">STT</th>
                                 <th scope="col">Họ và Tên</th>
                                 <th scope="col">Lớp</th>
-                                <th scope="col">Lịch Học</th>
-                                <th scope="col">Hạng Đăng Ký</th>
+                                <th scope="col">Buổi Học</th>
+                                <th scope="col">Hạng</th>
                                 <th scope="col">Xe Đăng Ký</th>
-                                <th scope="col">Loại Thực Hành</th>
-                                <th scope="col">Thông tin học viên</th>
+                                <th scope="col">Lịch Học</th>
+                                <th scope="col">Thời Gian Học</th>
+                                <th scope="col">Thời Gian Đã Học</th>
+                                <th scope="col">Trạng Thái</th>
+                                <th scope="col">Thông tin</th>
+                             <th scope="col"></th>
                                 <th scope="col"></th>
                                 <th scope="col"></th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr th:each="hocVien, no: ${pageHocVien}">
+                            <tr th:each="hocVien, no: ${pageHocVien}"  th:attr="data-id=${hocVien.hocVienID}">
                                 <th scope="row" th:text="${no.index +1}">0</th>
                                 <td th:text="*{hocVien.hoTen}"></td>
                                 <td>
@@ -118,14 +122,27 @@
                                 <td th:text="*{hocVien.hangDK}"></td>
                                 <td th:text="*{hocVien.loaiXeDK}"></td>
                                 <td th:text="*{hocVien.lichHoc}"></td>
+                                <td class="thoi-gian-hoc">
+                                    <span th:if="${not #lists.isEmpty(hocVien.lopHocs)}" 
+                                          th:text="${hocVien.lopHocs[0].thoiLuongHoc + ' giờ'}">
+                                    </span>
+                                    <span th:if="${#lists.isEmpty(hocVien.lopHocs)}">Chưa có lớp</span>
+                                </td>
+                                <td class="thoi-gian-da-hoc" th:text="${hocVien.thoiGianDaHoc != null ? hocVien.thoiGianDaHoc + ' giờ' : '0 giờ'}"></td>
+                                <td class="trang-thai">
+                                    <span th:if="${hocVien.trangThai == 'Đang học'}" class="badge bg-primary">Đang học</span>
+                                    <span th:if="${hocVien.trangThai == 'Đủ điều kiện thi'}" class="badge bg-success">Đủ điều kiện thi</span>
+                                    <span th:if="${hocVien.trangThai == 'Chưa bắt đầu'}" class="badge bg-warning">Chưa bắt đầu</span>
+                                </td>
                                 <td>
                                     <a th:href="@{/admin/hoc_vien/chi_tiet/{id}(id=${hocVien.hocVienID})}" class="text-decoration-none">Xem Thêm</a>
                                 </td>
-                                <td>
+								<td>
                                     <a th:href="@{/admin/hoc_vien/{id}(id=${hocVien.hocVienID})}" class="text-decoration-none">
                                         <i class="fa-solid fa-pen-to-square" style="color: blue;"></i>
                                     </a>
                                 </td>
+ 								
                                 <td>
                                     <form th:action="@{/admin/hoc_vien/delete/{id}(id=${hocVien.hocVienID})}" 
                                           method="post" 
@@ -136,6 +153,15 @@
                                             <i class="fa-solid fa-trash-can"></i>
                                         </button>
                                     </form>
+                                </td>
+                                <td>
+                                    <button type="button" 
+                                            class="btn btn-success btn-sm confirm-button"
+                                            th:data-id="${hocVien.hocVienID}"
+                                            th:data-student-name="${hocVien.hoTen}"
+                                            th:disabled="${hocVien.trangThai != 'Đủ điều kiện thi'}">
+                                        <i class="fa-solid fa-check"></i> Xác nhận
+                                    </button>
                                 </td>
                             </tr>
                         </tbody>
@@ -257,6 +283,220 @@
             `;
             document.head.appendChild(style);
         });
+        
+setInterval(function() {
+    document.querySelectorAll('tbody tr[data-id]').forEach(row => {
+        const hocVienId = row.getAttribute('data-id');
+        const thoiGianDaHocCell = row.querySelector('.thoi-gian-da-hoc');
+        const thoiGianHocCell = row.querySelector('.thoi-gian-hoc');
+        const trangThaiCell = row.querySelector('.trang-thai');
+        const confirmButton = row.querySelector('.confirm-button');
+        const lopHocCell = row.querySelector('td:nth-child(3)');
+        
+        // Kiểm tra xem có đang trong quá trình cập nhật không
+        if (row.getAttribute('data-updating') === 'true') {
+            return;
+        }
+        
+        if (thoiGianDaHocCell && thoiGianHocCell && lopHocCell) {
+            const currentTimeText = thoiGianDaHocCell.textContent.trim();
+            const currentTime = parseFloat(currentTimeText.replace(' giờ', '')) || 0;
+            
+            const totalTimeText = thoiGianHocCell.querySelector('span')?.textContent;
+            const totalTime = totalTimeText ? parseFloat(totalTimeText.replace(' giờ', '')) : 0;
+            
+            const lopHocText = lopHocCell.textContent.trim();
+            
+            if (!isNaN(currentTime) && !isNaN(totalTime) && 
+                lopHocText !== '' && 
+                lopHocText !== 'Chưa có lớp' &&
+                currentTime < totalTime) {
+                
+                const newTime = currentTime + 1;
+                
+                // Đánh dấu đang trong quá trình cập nhật
+                row.setAttribute('data-updating', 'true');
+
+                // Lấy CSRF token từ meta tag
+                const csrfToken = document.querySelector("meta[name='_csrf']")?.getAttribute("content");
+                const csrfHeader = document.querySelector("meta[name='_csrf_header']")?.getAttribute("content");
+                
+                fetch(`/admin/hoc_vien/cap_nhat_thoi_gian/${hocVienId}?time=${newTime}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        [csrfHeader]: csrfToken
+                    },
+                    credentials: 'same-origin'
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        thoiGianDaHocCell.textContent = newTime.toFixed(1) + ' giờ';
+                        
+                        if (data.trangThai === 'Đủ điều kiện thi') {
+                            trangThaiCell.innerHTML = '<span class="badge bg-success">Đủ điều kiện thi</span>';
+                            if (confirmButton) {
+                                confirmButton.disabled = false;
+                            }
+                            localStorage.setItem(`student_status_${hocVienId}`, 'Đủ điều kiện thi');
+                        } else {
+                            trangThaiCell.innerHTML = '<span class="badge bg-primary">Đang học</span>';
+                            if (confirmButton) {
+                                confirmButton.disabled = true;
+                            }
+                            localStorage.removeItem(`student_status_${hocVienId}`);
+                        }
+                    } else {
+                        console.error('Lỗi cập nhật:', data.message);
+                        showError('Lỗi cập nhật', data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Lỗi kết nối:', error);
+                    showError('Lỗi kết nối', 'Không thể kết nối đến máy chủ. Vui lòng thử lại sau.');
+                })
+                .finally(() => {
+                    setTimeout(() => {
+                        row.removeAttribute('data-updating');
+                    }, 1000); // Đợi 1 giây trước khi cho phép cập nhật tiếp
+                });
+            }
+        }
+    });
+}, 1000);
+
+// Hàm hiển thị lỗi
+function showError(title, message) {
+    Swal.fire({
+        title: title,
+        text: message,
+        icon: 'error',
+        confirmButtonText: 'Đóng',
+        confirmButtonColor: '#dc3545'
+    });
+}
+
+// Khôi phục trạng thái từ localStorage khi tải trang
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('tbody tr[data-id]').forEach(row => {
+        const hocVienId = row.getAttribute('data-id');
+        const trangThaiCell = row.querySelector('.trang-thai');
+        const confirmButton = row.querySelector('.confirm-button');
+        const savedStatus = localStorage.getItem(`student_status_${hocVienId}`);
+        
+        if (savedStatus === 'Đủ điều kiện thi') {
+            trangThaiCell.innerHTML = '<span class="badge bg-success">Đủ điều kiện thi</span>';
+            if (confirmButton) {
+                confirmButton.disabled = false;
+            }
+        }
+    });
+
+    // Xử lý nút xác nhận hoàn thành
+    document.querySelectorAll('.confirm-button').forEach(button => {
+        button.addEventListener('click', function() {
+            const hocVienId = this.getAttribute('data-id');
+            const studentName = this.getAttribute('data-student-name');
+            const row = this.closest('tr');
+
+            Swal.fire({
+                title: 'Xác nhận hoàn thành',
+                html: `Bạn có chắc chắn muốn xác nhận học viên <strong>${studentName}</strong> đã hoàn thành khóa học không?<br>
+                      Học viên sẽ được xóa khỏi danh sách.`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Xác nhận',
+                cancelButtonText: 'Hủy',
+                customClass: {
+                    popup: 'animated fadeInDown'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Hiển thị loading spinner
+                    Swal.fire({
+                        title: 'Đang xử lý...',
+                        html: 'Vui lòng chờ trong giây lát',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    // Gửi request xác nhận hoàn thành
+                    fetch(`/admin/hoc_vien/xac_nhan_hoan_thanh/${hocVienId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Xóa trạng thái từ localStorage
+                            localStorage.removeItem(`student_status_${hocVienId}`);
+
+                            // Xóa hàng khỏi bảng với hiệu ứng fade out
+                            row.style.transition = 'opacity 0.5s';
+                            row.style.opacity = '0';
+                            setTimeout(() => {
+                                row.remove();
+                                // Cập nhật số thứ tự các hàng còn lại
+                                document.querySelectorAll('tbody tr').forEach((tr, index) => {
+                                    tr.querySelector('th').textContent = index + 1;
+                                });
+                            }, 500);
+
+                            Swal.fire({
+                                title: 'Thành công!',
+                                text: data.message,
+                                icon: 'success',
+                                confirmButtonText: 'Đóng',
+                                confirmButtonColor: '#28a745',
+                                customClass: {
+                                    popup: 'animated fadeInDown'
+                                }
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Lỗi!',
+                                text: data.message,
+                                icon: 'error',
+                                confirmButtonText: 'Đóng',
+                                confirmButtonColor: '#dc3545',
+                                customClass: {
+                                    popup: 'animated fadeInDown'
+                                }
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Lỗi:', error);
+                        Swal.fire({
+                            title: 'Lỗi!',
+                            text: 'Đã xảy ra lỗi khi xác nhận hoàn thành',
+                            icon: 'error',
+                            confirmButtonText: 'Đóng',
+                            confirmButtonColor: '#dc3545',
+                            customClass: {
+                                popup: 'animated fadeInDown'
+                            }
+                        });
+                    });
+                }
+            });
+        });
+    });
+});
     </script>
 </body>
 </html>
