@@ -101,7 +101,7 @@
                                 <th scope="col">Xe Đăng Ký</th>
                                 <th scope="col">Lịch Học</th>
                                 <th scope="col">Thời Gian Học</th>
-                                <th scope="col">Thời Gian Đã Học</th>
+                                <th scope="col">Tiến Độ</th>
                                 <th scope="col">Trạng Thái</th>
                                 <th scope="col">Thông tin</th>
                              <th scope="col"></th>
@@ -128,7 +128,7 @@
                                     </span>
                                     <span th:if="${#lists.isEmpty(hocVien.lopHocs)}">Chưa có lớp</span>
                                 </td>
-                                <td class="thoi-gian-da-hoc" th:text="${hocVien.thoiGianDaHoc != null ? hocVien.thoiGianDaHoc + ' giờ' : '0 giờ'}"></td>
+                                <td class="thoi-gian-da-hoc" th:text="${hocVien.thoiGianDaHoc != null ? hocVien.thoiGianDaHoc + ' %' : '0 %'}"></td>
                                 <td class="trang-thai">
                                     <span th:if="${hocVien.trangThai == 'Đang học'}" class="badge bg-primary">Đang học</span>
                                     <span th:if="${hocVien.trangThai == 'Đủ điều kiện thi'}" class="badge bg-success">Đủ điều kiện thi</span>
@@ -288,7 +288,6 @@ setInterval(function() {
     document.querySelectorAll('tbody tr[data-id]').forEach(row => {
         const hocVienId = row.getAttribute('data-id');
         const thoiGianDaHocCell = row.querySelector('.thoi-gian-da-hoc');
-        const thoiGianHocCell = row.querySelector('.thoi-gian-hoc');
         const trangThaiCell = row.querySelector('.trang-thai');
         const confirmButton = row.querySelector('.confirm-button');
         const lopHocCell = row.querySelector('td:nth-child(3)');
@@ -298,21 +297,18 @@ setInterval(function() {
             return;
         }
         
-        if (thoiGianDaHocCell && thoiGianHocCell && lopHocCell) {
+        if (thoiGianDaHocCell && lopHocCell) {
             const currentTimeText = thoiGianDaHocCell.textContent.trim();
-            const currentTime = parseFloat(currentTimeText.replace(' giờ', '')) || 0;
-            
-            const totalTimeText = thoiGianHocCell.querySelector('span')?.textContent;
-            const totalTime = totalTimeText ? parseFloat(totalTimeText.replace(' giờ', '')) : 0;
+            const currentPercent = parseFloat(currentTimeText.replace('%', '')) || 0;
             
             const lopHocText = lopHocCell.textContent.trim();
             
-            if (!isNaN(currentTime) && !isNaN(totalTime) && 
+            if (!isNaN(currentPercent) && 
                 lopHocText !== '' && 
                 lopHocText !== 'Chưa có lớp' &&
-                currentTime < totalTime) {
+                currentPercent < 100) {
                 
-                const newTime = currentTime + 1;
+                const newPercent = currentPercent + 2.5; // Tăng 5% mỗi lần
                 
                 // Đánh dấu đang trong quá trình cập nhật
                 row.setAttribute('data-updating', 'true');
@@ -321,7 +317,7 @@ setInterval(function() {
                 const csrfToken = document.querySelector("meta[name='_csrf']")?.getAttribute("content");
                 const csrfHeader = document.querySelector("meta[name='_csrf_header']")?.getAttribute("content");
                 
-                fetch(`/admin/hoc_vien/cap_nhat_thoi_gian/${hocVienId}?time=${newTime}`, {
+                fetch(`/admin/hoc_vien/cap_nhat_thoi_gian/${hocVienId}?time=${newPercent}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
@@ -338,7 +334,7 @@ setInterval(function() {
                 })
                 .then(data => {
                     if (data.success) {
-                        thoiGianDaHocCell.textContent = newTime.toFixed(1) + ' giờ';
+                        thoiGianDaHocCell.textContent = newPercent.toFixed(1) + '%';
                         
                         if (data.trangThai === 'Đủ điều kiện thi') {
                             trangThaiCell.innerHTML = '<span class="badge bg-success">Đủ điều kiện thi</span>';

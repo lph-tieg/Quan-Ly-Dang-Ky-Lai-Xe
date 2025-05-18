@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import com.example.DoAn.Model.GiangVien;
 import com.example.DoAn.Model.Hang;
 import com.example.DoAn.Model.KhoaHoc;
 import com.example.DoAn.Model.LopHoc;
@@ -23,8 +24,6 @@ public interface LopHocService {
 
 	// Tìm lớp học theo lịch học
 	public List<LopHoc> findByLichHoc(String lichHoc);
-
-//	public LopHoc findByTenLop(String tenLop);
 
 	// Trả về danh sách lớp học cho phân trang
 	public Page<LopHoc> findALlLopPage(Integer pageNo);
@@ -44,8 +43,7 @@ public interface LopHocService {
 	// Tìm lớp học dựa trên ID
 	public LopHoc findByLopHocID(Integer lopHocID);
 
-	// Cập nhật lớp học và danh sách giảng viên trong lớp học, lưu lại lịch sử hoạt
-	// động
+	// Cập nhật lớp học và danh sách giảng viên trong lớp học, lưu lại lịch sử hoạt động
 	public void updateLopHoc(LopHoc lopHoc, List<Integer> giangVienMoiID, String nguoiThucHien);
 
 	// Thêm lớp học, lưu lại lịch sử hoạt động
@@ -56,8 +54,6 @@ public interface LopHocService {
 
 	// Tìm lớp học theo hạng
 	Optional<LopHoc> findById(Integer lopHocID);
-
-//	public List<LopHoc> findByCriteria(String hang, String lichHoc, String buoiHoc, String giangVien);
 
 	// Tìm lớp học theo khoá học
 	public LopHoc findByKhoaHoc(KhoaHoc khoaHoc);

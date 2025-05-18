@@ -1,3 +1,4 @@
+
 package com.example.DoAn.Controller;
 
 import java.util.ArrayList;
@@ -270,6 +271,12 @@ public class LopHocController {
 		model.addAttribute("isEdit", true);
 		model.addAttribute("titlePage", "Lớp Học/Cập Nhật");
 		return ("/admin/lopHoc/addUpdateLopHoc");
+	}
+
+	@GetMapping("/cap_nhat")
+	public String getUpdateLopHoc(@RequestParam("lopHocID") Integer lopHocID, Model model,
+			Authentication authentication) {
+		return getLopHocByID(lopHocID, model, authentication);
 	}
 
 	// Xử lý Post cho cập nhật

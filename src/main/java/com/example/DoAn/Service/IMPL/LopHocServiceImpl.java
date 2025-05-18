@@ -45,50 +45,41 @@ public class LopHocServiceImpl implements LopHocService {
 	// Tìm lớp theo tên không phân biệt chữ hoa chữ thường khi phân trang
 	@Override
 	public Page<LopHoc> findByTenLopContainingIgnoreCase(String tenLop, Pageable pageable) {
-		// TODO Auto-generated method stub
 		return lopHocRepository.findByTenLopContainingIgnoreCase(tenLop, pageable);
 	}
 
 	// Tìm lớp theo hạng
 	@Override
 	public List<LopHoc> findByHang(Hang hang) {
-		// TODO Auto-generated method stub
 		return lopHocRepository.findByHang(hang);
 	}
 
 	// Tìm lớp theo buổi học
 	@Override
 	public List<LopHoc> findByBuoiHoc(String buoiHoc) {
-		// TODO Auto-generated method stub
 		return lopHocRepository.findByBuoiHoc(buoiHoc);
 	}
 
 	// Tìm lớp theo lịch học
 	@Override
 	public List<LopHoc> findByLichHoc(String lichHoc) {
-		// TODO Auto-generated method stub
 		return lopHocRepository.findByLichHoc(lichHoc);
 	}
 
 	// Lấy danh sách lớp học khi phân trang
 	@Override
 	public Page<LopHoc> findALlLopPage(Integer pageNo) {
-		// TODO Auto-generated method stub
 		Pageable pageable = PageRequest.of(pageNo - 1, 5);
-
 		return lopHocRepository.findAll(pageable);
 	}
 
 	// Lấy danh sách các lớp học
 	@Override
 	public List<LopHoc> findAllLopHoc() {
-		// TODO Auto-generated method stub
 		return lopHocRepository.findAll();
 	}
 
-	/**
-	 * Xoá lớp học Lưu lại lịch sử hoạt động
-	 */
+	// Xoá lớp học và lưu lại lịch sử hoạt động
 	@Transactional
 	@Override
 	public void deleteLop(Integer lopHocID, String nguoiThucHien) {
@@ -114,7 +105,6 @@ public class LopHocServiceImpl implements LopHocService {
 			lopHocRepository.delete(lopHoc);
 
 			String noiDung = "Xoá lớp học " + lopHoc.getTenLop();
-
 			lichSuService.themLichSu(nguoiThucHien, "Xoá", "Lớp Học", noiDung);
 
 			System.out.print("Đã xóa thành công lớp học có ID: {}" + lopHocID);
@@ -134,9 +124,7 @@ public class LopHocServiceImpl implements LopHocService {
 				.orElseThrow(() -> new RuntimeException("Không tìm thấy lớp học với ID: " + lopHocID));
 	}
 
-	/**
-	 * Thêm lớp học Lưu lại lịch sử hoạt động
-	 */
+	// Thêm lớp học và lưu lại lịch sử hoạt động
 	@Override
 	public LopHoc createLopHoc(LopHoc lopHoc, String nguoiThucHien) {
 		try {
@@ -162,41 +150,36 @@ public class LopHocServiceImpl implements LopHocService {
 		}
 	}
 
-	// Tìm lớp hcọ theo lịch học, buổi học, hạng
+	// Tìm lớp học theo lịch học, buổi học, hạng
 	@Override
 	public List<LopHoc> findByFilter(String lichHoc, String buoiHoc, Hang hang) {
-		// TODO Auto-generated method stub
-		return lopHocRepository
-				.findAll().stream().filter(lop -> lop.getLichHoc().equalsIgnoreCase(lichHoc)
-						&& lop.getBuoiHoc().equalsIgnoreCase(buoiHoc) && lop.getHang().equals(hang))
+		return lopHocRepository.findAll().stream()
+				.filter(lop -> lop.getLichHoc().equalsIgnoreCase(lichHoc) && lop.getBuoiHoc().equalsIgnoreCase(buoiHoc)
+						&& lop.getHang().equals(hang))
 				.collect(Collectors.toList());
 	}
 
 	// Tìm lớp học theo khoá học
 	@Override
 	public LopHoc findByKhoaHoc(KhoaHoc khoaHoc) {
-		// TODO Auto-generated method stub
 		return lopHocRepository.findByKhoaHoc(khoaHoc);
 	}
 
 	// Tìm lớp học theo tên (xác nhận tên lớp đã tồn tại hay chưa)
 	@Override
 	public boolean existsByTenLop(String tenLop) {
-		// TODO Auto-generated method stub
 		return lopHocRepository.existsByTenLop(tenLop);
 	}
 
 	// Tìm lớp học theo ID (ID duy nhất trong lớp)
 	@Override
 	public Optional<LopHoc> findById(Integer lopHocID) {
-		// TODO Auto-generated method stub
 		return lopHocRepository.findById(lopHocID);
 	}
 
 	// Tìm lớp học theo tên (Tên duy nhất trong lớp)
 	@Override
 	public Optional<LopHoc> findByTenLop(String tenLop) {
-		// TODO Auto-generated method stub
 		return lopHocRepository.findByTenLop(tenLop);
 	}
 
@@ -250,10 +233,7 @@ public class LopHocServiceImpl implements LopHocService {
 		return result;
 	}
 
-	/**
-	 * Cập nhật lớp học Cập nhật danh sách giảng viên trong lớp học Lưu lại lịch sử
-	 * hoạt động
-	 */
+	// Cập nhật lớp học và lưu lại lịch sử hoạt động
 	@Override
 	@Transactional(noRollbackFor = { IllegalArgumentException.class, RuntimeException.class })
 	public void updateLopHoc(LopHoc lopHoc, List<Integer> giangVienMoiID, String nguoiThucHien) {
@@ -401,15 +381,12 @@ public class LopHocServiceImpl implements LopHocService {
 	// Tìm lớp theo ID hạng trong phân trang
 	@Override
 	public Page<LopHoc> findByHangHangID(Integer hangID, Pageable pageable) {
-		// TODO Auto-generated method stub
 		return lopHocRepository.findByHangHangID(hangID, pageable);
 	}
 
 	// Tìm lớp theo buổi học trong phân trang
 	@Override
 	public Page<LopHoc> findByBuoiHoc(String buoiHoc, Pageable pageable) {
-		// TODO Auto-generated method stub
 		return lopHocRepository.findByBuoiHoc(buoiHoc, pageable);
 	}
-
 }

@@ -580,30 +580,18 @@ public class HocVienController {
 	@ResponseBody
 	@Transactional
 	public ResponseEntity<?> capNhatThoiGianHoc(@PathVariable("id") Integer hocVienID,
-			@RequestParam("time") Double thoiGianDaHoc, Authentication authentication) {
+			@RequestParam("time") Double phanTramHoanThanh, Authentication authentication) {
 		try {
 			HocVien hocVien = hocVienService.findByID(hocVienID);
 			if (hocVien == null) {
 				return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Không tìm thấy học viên"));
 			}
 
-			// Lấy thời gian học từ lớp học
-			Integer thoiGianHoc = null;
-			if (!hocVien.getLopHocs().isEmpty()) {
-				LopHoc lopHoc = hocVien.getLopHocs().get(0);
-				thoiGianHoc = lopHoc.getThoiLuongHoc();
-			}
+			// Cập nhật phần trăm hoàn thành
+			hocVien.setThoiGianDaHoc(phanTramHoanThanh);
 
-			if (thoiGianHoc == null) {
-				return ResponseEntity.badRequest()
-						.body(Map.of("success", false, "message", "Không tìm thấy thời gian học"));
-			}
-
-			// Cập nhật thời gian đã học
-			hocVien.setThoiGianDaHoc(thoiGianDaHoc);
-
-			// Cập nhật trạng thái dựa trên thời gian học
-			if (thoiGianDaHoc >= thoiGianHoc) {
+			// Cập nhật trạng thái dựa trên phần trăm hoàn thành
+			if (phanTramHoanThanh >= 100) {
 				hocVien.setTrangThai("Đủ điều kiện thi");
 			} else {
 				hocVien.setTrangThai("Đang học");
@@ -612,8 +600,8 @@ public class HocVienController {
 			// Lưu vào cơ sở dữ liệu
 			hocVienService.updateHocVien(hocVien, authentication.getName());
 
-			return ResponseEntity.ok(Map.of("success", true, "trangThai", hocVien.getTrangThai(), "thoiGianDaHoc",
-					hocVien.getThoiGianDaHoc(), "thoiGianHoc", thoiGianHoc));
+			return ResponseEntity.ok(Map.of("success", true, "trangThai", hocVien.getTrangThai(), "phanTramHoanThanh",
+					hocVien.getThoiGianDaHoc()));
 		} catch (Exception e) {
 			e.printStackTrace(); // Log lỗi để debug
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
